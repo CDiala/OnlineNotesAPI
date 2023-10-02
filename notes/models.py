@@ -26,7 +26,7 @@ class Note(models.Model):
     STATUS_CHOICES = [
         (STATUS_NEW, 'New'),
         (STATUS_WIP, "In Progress"),
-        (STATUS_END, "Completed")
+        (STATUS_END, "Completed"),
         (STATUS_DEL, "Deleted")
     ]
 
