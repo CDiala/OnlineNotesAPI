@@ -30,6 +30,23 @@ class Note(models.Model):
         (STATUS_DEL, "Deleted")
     ]
 
+    CATEGORY_NONE = 'N'
+    CATEGORY_BLUE = 'B'
+    CATEGORY_GREEN = 'G'
+    CATEGORY_ORANGE = 'O'
+    CATEGORY_PURPLE = 'P'
+    CATEGORY_RED = 'R'
+    CATEGORY_YELLOW = 'Y'
+    CATEGORY_CHOICES = [
+        (CATEGORY_NONE, 'None'),
+        (CATEGORY_BLUE, 'Blue'),
+        (CATEGORY_GREEN, 'Green'),
+        (CATEGORY_ORANGE, 'Orange'),
+        (CATEGORY_PURPLE, 'Purple'),
+        (CATEGORY_RED, 'Red'),
+        (CATEGORY_YELLOW, 'Yellow'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
@@ -41,6 +58,8 @@ class Note(models.Model):
         max_length=1, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
     status = models.CharField(
         max_length=15, choices=STATUS_CHOICES, default=STATUS_NEW)
+    category = models.CharField(
+        max_length=1, choices=CATEGORY_CHOICES, default=CATEGORY_NONE)
 
     class Meta:
         ordering = ['-created_at']
