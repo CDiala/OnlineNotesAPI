@@ -12,3 +12,9 @@ class User(models.Model):
     is_email_valid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f'{self.first_name} {self.last_name}'
+
+    class Meta:
+        ordering = ['email']
