@@ -1,5 +1,24 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+
+
+class User(models.Model):
+    '''
+    Custom user model that supports email authentication.
+    '''
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=255)
+    is_email_valid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f'{self.first_name} {self.last_name}'
+
+    class Meta:
+        ordering = ['email']
 
 
 class Note(models.Model):
