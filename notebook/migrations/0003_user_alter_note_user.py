@@ -7,14 +7,15 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notes', '0002_note_category'),
+        ('notebook', '0002_note_category'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('first_name', models.CharField(max_length=255)),
                 ('last_name', models.CharField(max_length=255)),
                 ('email', models.EmailField(max_length=254, unique=True)),
@@ -30,6 +31,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='note',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='notes.user'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to='notebook.user'),
         ),
     ]

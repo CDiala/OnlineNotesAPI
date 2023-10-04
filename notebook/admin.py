@@ -3,7 +3,7 @@ from . import models
 
 
 @admin.register(models.Note)
-class NotesAdmin(admin.ModelAdmin):
+class NotebookAdmin(admin.ModelAdmin):
     '''
     Customizing the notes page in admin portal 
     '''

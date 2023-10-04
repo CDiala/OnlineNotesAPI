@@ -8,32 +8,32 @@ import json
 
 # Create your views here.
 
-notes: list(Note.objects.all()) = [
-    {
-        "user": "d.c@yahoo.com",
-        "title": "Get a drink",
-        "content": "Buy coke from the store",
-        "slug": "coke-from-store",
-        "created_at": "2023-09-30",
-        "updated_at": "",
-        "due_date": "2023-09-30",
-        "priority": "M",
-        "status": "P",
-        "category": "N"
-    },
-    {
-        "user": "a.b@yahoo.com",
-        "title": "Get pizza",
-        "content": "Buy coke along with it",
-        "slug": "pizza-plus-coke",
-        "created_at": "2023-09-29",
-        "updated_at": "",
-        "due_date": "2023-09-29",
-        "priority": "M",
-        "status": "P",
-        "category": "G"
-    },
-]
+# notes: list(Note.objects.all()) = [
+#     {
+#         "user": "d.c@yahoo.com",
+#         "title": "Get a drink",
+#         "content": "Buy coke from the store",
+#         "slug": "coke-from-store",
+#         "created_at": "2023-09-30",
+#         "updated_at": "",
+#         "due_date": "2023-09-30",
+#         "priority": "M",
+#         "status": "P",
+#         "category": "N"
+#     },
+#     {
+#         "user": "a.b@yahoo.com",
+#         "title": "Get pizza",
+#         "content": "Buy coke along with it",
+#         "slug": "pizza-plus-coke",
+#         "created_at": "2023-09-29",
+#         "updated_at": "",
+#         "due_date": "2023-09-29",
+#         "priority": "M",
+#         "status": "P",
+#         "category": "G"
+#     },
+# ]
 
 
 def get_notes(request):

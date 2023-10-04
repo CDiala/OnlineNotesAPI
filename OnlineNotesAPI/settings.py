@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "debug_toolbar",
-    'notes',
+    'notebook',
 ]
 
 MIDDLEWARE = [
@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'OnlineNotesAPI.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'notesdb',
+        'NAME': 'notebookdb',
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': 'admin@123'
