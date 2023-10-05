@@ -135,3 +135,8 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+# Return decimal values as is
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING': False
+}
