@@ -26,9 +26,9 @@ class NotebookAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ['title']}
 
 
-class UsersAdmin(admin.ModelAdmin):
+class OwnersAdmin(admin.ModelAdmin):
     '''
-    Customizing the user page in admin portal 
+    Customizing the owners page in admin portal 
     '''
 
     list_display = [
@@ -40,8 +40,8 @@ class UsersAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at'
     ]
-    list_editable = ['email']
+    # list_editable = ['email']
 
 
 # Register your models here.
-admin.site.register(models.User, UsersAdmin)
+admin.site.register(models.Owner, OwnersAdmin)

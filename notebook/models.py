@@ -2,9 +2,10 @@ from django.db import models
 # from django.contrib.auth.models import User
 
 
-class User(models.Model):
+class Owner(models.Model):
     '''
-    Custom user model that supports email authentication.
+    Custom owner model that returns a concatenation 
+    of first name and last name.
     '''
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -23,7 +24,7 @@ class User(models.Model):
 
 class Note(models.Model):
     """
-    This note model includes fields for the user who created the note, 
+    This model includes fields for the owner who created the note, 
     a title, content, priority, status, due date, and timestamps for 
     when the note was created and last updated. It also has predefined 
     priority and status choices. List of notes are generated and ordered 
@@ -66,7 +67,7 @@ class Note(models.Model):
         (CATEGORY_YELLOW, 'Yellow'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     content = models.TextField()
     slug = models.SlugField()

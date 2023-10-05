@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Note, User
+from .models import Note, Owner
 from .serializers import NoteSerializer
 # from django.core.validators import validate_email
 # from django.contrib.auth.hashers import make_password
@@ -16,14 +16,14 @@ from .serializers import NoteSerializer
 def notes_list(request):
     if request.method == 'GET':
         # notes_queryset = get_list_or_404(Note)
-        notes_queryset = Note.objects.select_related('user').all()
-        # if hyperlink for users/id doesn't work, add context={'request': request} after many=True
+        notes_queryset = Note.objects.select_related('owner').all()
+        # if hyperlink for owners/id doesn't work, add context={'request': request} after many=True
         serializer = NoteSerializer(notes_queryset, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = NoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # serializer.save() # commented until users are added to the db
+        # serializer.save() # commented until owners are added to the db
         # return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response('in progress')
 
@@ -42,7 +42,7 @@ def note_details(request, note_id):
         return Response('put method here')
     elif request.method == 'DELETE':
         # # Allow this conditional check for records with on_delete=models.PROTECT
-        # if note.user_item.count > 0:
-        #     return Response({'error': "Cannot delete record with an associated user."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        # if note.owner_item.count > 0:
+        #     return Response({'error': "Cannot delete record with an associated owner."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         note.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
