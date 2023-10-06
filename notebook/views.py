@@ -5,9 +5,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Note, Owner
 from .serializers import NoteSerializer
-# from django.core.validators import validate_email
-# from django.contrib.auth.hashers import make_password
-# import json
 
 # Create your views here.
 
@@ -15,7 +12,6 @@ from .serializers import NoteSerializer
 @api_view(['GET', 'POST'])
 def notes_list(request):
     if request.method == 'GET':
-        # notes_queryset = get_list_or_404(Note)
         notes_queryset = Note.objects.select_related('owner').all()
         # if hyperlink for owners/id doesn't work, add context={'request': request} after many=True
         serializer = NoteSerializer(notes_queryset, many=True)
@@ -23,9 +19,8 @@ def notes_list(request):
     elif request.method == 'POST':
         serializer = NoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # serializer.save() # commented until owners are added to the db
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response('in progress')
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -37,9 +32,8 @@ def note_details(request, note_id):
     elif request.method == 'PUT':
         serializer = NoteSerializer(note, data=request.data)
         serializer.is_valid(raise_exception=True)
-        # serializer.save() # commented until records exist in the db
-        # return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response('put method here')
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'DELETE':
         # # Allow this conditional check for records with on_delete=models.PROTECT
         # if note.owner_item.count > 0:
