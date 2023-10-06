@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     "debug_toolbar",
     'notebook',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,5 @@ INTERNAL_IPS = [
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False
 }
+
+AUTH_USER_MODEL = 'core.User'

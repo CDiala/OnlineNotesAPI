@@ -8,6 +8,7 @@ class NotebookAdmin(admin.ModelAdmin):
     Customizing the notes page in admin portal 
     '''
     list_display = [
+        'owner',
         'title',
         'content',
         'slug',
@@ -17,7 +18,7 @@ class NotebookAdmin(admin.ModelAdmin):
         'status',
         'category'
     ]
-    list_editable = ['content', 'status', 'priority', 'category']
+    list_editable = ['content', 'status', 'priority', 'category', 'due_date']
     list_per_page = 20
 
     """
@@ -35,12 +36,11 @@ class OwnersAdmin(admin.ModelAdmin):
         'first_name',
         'last_name',
         'email',
-        'password',
         'is_email_valid',
         'created_at',
         'updated_at'
     ]
-    # list_editable = ['email']
+    list_select_related = ['user']
 
 
 # Register your models here.
