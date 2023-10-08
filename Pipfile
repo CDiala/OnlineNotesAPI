@@ -11,6 +11,7 @@ djangorestframework = "*"
 djoser = "*"
 djangorestframework-simplejwt = "*"
 django-filter = "*"
+xhtml2pdf = "*"
 
 [dev-packages]
 

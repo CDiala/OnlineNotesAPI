@@ -1,10 +1,15 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
+from django.views import View
+# from django.http import HTTP404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status, permissions
+
+from OnlineNotesAPI import renderers
 
 from core import authentication
 from core.models import User
@@ -176,3 +181,83 @@ def order_notes(value: str):
     #     "status": "P",
     #     "category": "B"
     # }
+
+
+def generate_user_notes():
+
+    notes = Note.objects.select_related('owner').all().order_by('id')
+    print('get notelist', notes)
+
+    data = {
+        "user": "Chibuzo Diala",
+        "notes": notes[0:]
+        # "notes": [
+        #     {
+        #         "id": 11,
+        #         "title": "welcome back",
+        #         "slug": "welcome-back",
+        #         "owner": 1,
+        #         "content": "...",
+        #         "created_at": datetime.fromisoformat("2023-10-08T12:20:06.694610Z").strftime("%Y-%m-%d"),
+        #         "due_date": "",
+        #         "priority": "M",
+        #         "status": "N",
+        #         "category": "N"
+        #     },
+        #     {
+        #         "id": 10,
+        #         "title": "welcome home",
+        #         "slug": "welcome-home",
+        #         "owner": 1,
+        #         "content": "greeting to all",
+        #         "created_at": datetime.fromisoformat("2023-10-07T15:13:39.559046Z").strftime("%Y-%m-%d"),
+        #         "due_date": "2023-10-02",
+        #         "priority": "M",
+        #         "status": "N",
+        #         "category": "N"
+        #     },
+        #     {
+        #         "id": 9,
+        #         "title": "hi man",
+        #         "slug": "hi-man",
+        #         "owner": 2,
+        #         "content": "greeting to all",
+        #         "created_at": datetime.fromisoformat("2023-10-07T15:12:19.064450Z").strftime("%Y-%m-%d"),
+        #         "due_date": "2023-10-07",
+        #         "priority": "M",
+        #         "status": "C",
+        #         "category": "N"
+        #     }
+        # ]
+    }
+
+    return data
+
+# Opens up page as PDF
+
+
+class ViewPDF(View):
+    def get(self, request, *args, **kwargs):
+
+        pdf = renderers.render_to_pdf(
+            'app/pdf_template.html', generate_user_notes())
+        return HttpResponse(pdf, content_type='application/pdf')
+
+
+# Automaticly downloads to PDF file
+class DownloadPDF(View):
+    def get(self, request, *args, **kwargs):
+
+        pdf = renderers.render_to_pdf(
+            'app/pdf_template.html', generate_user_notes())
+
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = "Note_%s.pdf" % ("12341231")
+        content = "attachment; filename=%s" % (filename)
+        response['Content-Disposition'] = content
+        return response
+
+
+def index(request):
+    context = {}
+    return render(request, 'app/index.html', context)
