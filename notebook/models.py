@@ -77,7 +77,8 @@ class Note(models.Model):
         (CATEGORY_YELLOW, 'Yellow'),
     ]
 
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        Owner, on_delete=models.CASCADE, related_name='note_owner')
     title = models.CharField(max_length=100)
     content = models.TextField()
     slug = models.SlugField(null=False, unique=True)

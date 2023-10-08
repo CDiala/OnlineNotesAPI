@@ -1,23 +1,18 @@
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib import admin
-from .models import User
+from . import models
 
 # Register your models here.
 
-'''
-Customize user model in Django Admin Panel to add custom fields for
-adding new users, and register model
-'''
 
-
-@admin.register(User)
-class UserAdmin(BaseUserAdmin):
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("username", "password1", "password2", "email", "first_name", "last_name"),
-            },
-        ),
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'is_active',
+        'is_superuser'
     )
+
+
+admin.site.register(models.User, UserAdmin)

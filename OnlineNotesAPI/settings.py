@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,7 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y*69#)=r0ncenc!aur74qn#xbzi2u@z^t1d$iw&rbmwpa78uy-'
+# SECRET_KEY = 'django-insecure-y*69#)=r0ncenc!aur74qn#xbzi2u@z^t1d$iw&rbmwpa78uy-'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY', default='django-secure-5%*rhfd345#$^&343g&*$56-7ic3wc6)n_5tasftb2od2445r#9*dxv__0wnm#&jk+!$bk#')
+JWT_SECRET = 'subscribetobuzz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',
     'djoser',
     "debug_toolbar",
@@ -144,6 +149,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
 
 # Configure django-rest-framework-simplejwt to use the Authorization: JWT <access_token> header:
@@ -152,3 +160,12 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'core.User'
+
+# Register Djoser serializer
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'core.serializers.UserCreateSerializer'
+    }
+}
+
+# LOGIN_FIELD = 'email'
