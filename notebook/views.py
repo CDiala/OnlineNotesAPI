@@ -4,7 +4,6 @@ from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.views import View
-# from django.http import HTTP404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status, permissions
@@ -16,6 +15,7 @@ from core.models import User
 from .models import Note, Owner
 from .serializers import NoteSerializer
 from datetime import datetime
+import csv
 
 # Create your views here.
 
@@ -186,52 +186,14 @@ def order_notes(value: str):
 def generate_user_notes():
 
     notes = Note.objects.select_related('owner').all().order_by('id')
-    print('get notelist', notes)
+    note_list = notes[0:]
 
     data = {
         "user": "Chibuzo Diala",
-        "notes": notes[0:]
-        # "notes": [
-        #     {
-        #         "id": 11,
-        #         "title": "welcome back",
-        #         "slug": "welcome-back",
-        #         "owner": 1,
-        #         "content": "...",
-        #         "created_at": datetime.fromisoformat("2023-10-08T12:20:06.694610Z").strftime("%Y-%m-%d"),
-        #         "due_date": "",
-        #         "priority": "M",
-        #         "status": "N",
-        #         "category": "N"
-        #     },
-        #     {
-        #         "id": 10,
-        #         "title": "welcome home",
-        #         "slug": "welcome-home",
-        #         "owner": 1,
-        #         "content": "greeting to all",
-        #         "created_at": datetime.fromisoformat("2023-10-07T15:13:39.559046Z").strftime("%Y-%m-%d"),
-        #         "due_date": "2023-10-02",
-        #         "priority": "M",
-        #         "status": "N",
-        #         "category": "N"
-        #     },
-        #     {
-        #         "id": 9,
-        #         "title": "hi man",
-        #         "slug": "hi-man",
-        #         "owner": 2,
-        #         "content": "greeting to all",
-        #         "created_at": datetime.fromisoformat("2023-10-07T15:12:19.064450Z").strftime("%Y-%m-%d"),
-        #         "due_date": "2023-10-07",
-        #         "priority": "M",
-        #         "status": "C",
-        #         "category": "N"
-        #     }
-        # ]
+        "notes": note_list
     }
 
-    return data
+    return (data, note_list)
 
 # Opens up page as PDF
 
@@ -240,7 +202,7 @@ class ViewPDF(View):
     def get(self, request, *args, **kwargs):
 
         pdf = renderers.render_to_pdf(
-            'app/pdf_template.html', generate_user_notes())
+            'app/pdf_template.html', generate_user_notes()[0])
         return HttpResponse(pdf, content_type='application/pdf')
 
 
@@ -249,7 +211,7 @@ class DownloadPDF(View):
     def get(self, request, *args, **kwargs):
 
         pdf = renderers.render_to_pdf(
-            'app/pdf_template.html', generate_user_notes())
+            'app/pdf_template.html', generate_user_notes()[0])
 
         response = HttpResponse(pdf, content_type='application/pdf')
         filename = "Note_%s.pdf" % ("12341231")
@@ -261,3 +223,27 @@ class DownloadPDF(View):
 def index(request):
     context = {}
     return render(request, 'app/index.html', context)
+
+
+'''
+Utility code to export note list to csv
+'''
+
+
+def DownloadCSV(request):
+    notes = generate_user_notes()[1]
+
+    print('csv data', notes)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="notes.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['id', 'title', 'slug', 'owner', 'content', 'created_at',
+                    'due_date', 'priority', 'status', 'category'])
+
+    for note in notes:
+        writer.writerow([note.id, note.title, note.slug, note.owner, note.content,
+                        note.created_at, note.due_date, note.priority, note.status, note.category])
+
+    return response
