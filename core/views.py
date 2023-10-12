@@ -159,3 +159,28 @@ class LogoutAPI(views.APIView):
         }
 
         return resp
+
+
+class UpdatePassword(views.APIView):
+    '''
+    This view updates a user's password by verifying 
+    old passwords first then updating it to new one
+    '''
+
+    def patch(self, request):
+
+        user_email = request.data.get('email')
+
+        user = get_object_or_404(User, email=user_email)
+
+        print('\n\n\nold pwd', user.password)
+
+        new_password = request.data.get('password')
+
+        if new_password is not None:
+            user.set_password(request.data.get('password'))
+
+        # user.password = request.data.get('password')
+        print('\n\n\nnew pwd', user.password)
+        user.save()
+        pass
