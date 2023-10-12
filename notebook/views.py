@@ -74,14 +74,14 @@ class NoteList(APIView):
             settings.AUTH_USER_MODEL).objects.filter(pk=pk_value))
 
         try:
-            # transaction goes here
-            # with transaction.atomic():
-            # part 1
-            owner = Owner()
-            owner.is_email_valid = 1
-            owner.user = user
-            if note_owner is None:
-                owner.save()
+            # # transaction goes here
+            # # with transaction.atomic():
+            # # part 1
+            # owner = Owner()
+            # owner.is_email_valid = 1
+            # owner.user = user
+            # if note_owner is None:
+            #     owner.save()
 
             # part 2
             # serializer.save()
@@ -91,7 +91,7 @@ class NoteList(APIView):
             note.slug = request.data['slug'] or '-'
             # note.due_date = request.data['due_date'] or datetime.datetime.utcnow(
             # ) + datetime.timedelta(hours=48)
-            note.owner = note_owner or owner
+            note.owner = note_owner
             # note.category = request.data['category'] or 'N'
             # note.status = request.data['status'] or 'N'
             # note.priority = request.data['priority'] or 'M'
