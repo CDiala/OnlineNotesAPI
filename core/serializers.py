@@ -4,7 +4,7 @@ from . import services
 
 class UserSerializer(serializers.Serializer):
     """
-    User Serializer for user registration and login
+    User Serializer for user registration
     """
     id = serializers.IntegerField(read_only=True)
     first_name = serializers.CharField()
@@ -16,3 +16,17 @@ class UserSerializer(serializers.Serializer):
         data = super().to_internal_value(data)
 
         return services.UserDataClass(**data)
+
+
+class UserLoginSerializer(serializers.Serializer):
+    """
+    User Serializer for user login
+    """
+    id = serializers.IntegerField(read_only=True)
+    email = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+
+        return services.UserLoginDataClass(**data)

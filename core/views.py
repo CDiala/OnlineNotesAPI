@@ -103,39 +103,40 @@ class LoginAPI(views.APIView):
     """
 
     def post(self, request):
+        try:
+            request_data = request.data
 
-        request_data = request.data
+            serializer = user_serializer.UserLoginSerializer(data=request_data)
+            serializer.is_valid(raise_exception=True)
 
-        if not request_data:
-            raise exceptions.PermissionDenied(
-                "Provide login credentials.", status.HTTP_403_FORBIDDEN)
+            email = request.data.get("email")
+            password = request.data.get("password")
 
-        email = request.data.get("email")
-        password = request.data.get("password")
+            user = service.user_selector(email)
 
-        user = service.user_selector(email)
+            if user is None:
+                raise exceptions.AuthenticationFailed(
+                    "Invalid credentials provided")
 
-        if user is None:
-            raise exceptions.AuthenticationFailed(
-                "Invalid credentials provided")
+            if not user.check_password(raw_password=password):
+                raise exceptions.AuthenticationFailed(
+                    {"message": "Invalid credentials provided", "code": status.HTTP_401_UNAUTHORIZED})
 
-        if not user.check_password(raw_password=password):
-            raise exceptions.AuthenticationFailed(
-                "Invalid credentials provided")
+            token = service.generate_token(user_id=user.id)
 
-        token = service.generate_token(user_id=user.id)
+            resp = response.Response()
 
-        resp = response.Response()
+            resp.set_cookie(key="jwt", value=token, httponly=True)
+            resp.status_code = 200
+            resp.data = {
+                "token": token,
+                "user": f"{user.first_name} {user.last_name}",
+                "id": user.id
+            }
 
-        resp.set_cookie(key="jwt", value=token, httponly=True)
-        resp.status_code = 200
-        resp.data = {
-            "token": token,
-            "user": f"{user.first_name} {user.last_name}",
-            "id": user.id
-        }
-
-        return resp
+            return resp
+        except Exception as e:
+            return response.Response({'detail': e.args}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAPI(views.APIView):

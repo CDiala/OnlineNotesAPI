@@ -37,6 +37,21 @@ class UserDataClass:
         )
 
 
+@dataclasses.dataclass
+class UserLoginDataClass:
+    email: str
+    password: str = None
+    id: int = None
+
+    @classmethod
+    def from_instance(cls, user: 'User') -> "UserLoginDataClass":
+        return cls(
+            email=user.email,
+            password=user.password,
+            id=user.id,
+        )
+
+
 """
 JWT Token Structure
 """
