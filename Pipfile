@@ -12,6 +12,9 @@ djoser = "*"
 djangorestframework-simplejwt = "*"
 django-filter = "*"
 xhtml2pdf = "*"
+python-dotenv = "*"
+django-cors-headers = "*"
+certifi = "*"
 
 [dev-packages]
 

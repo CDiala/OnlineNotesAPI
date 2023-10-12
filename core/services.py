@@ -4,6 +4,7 @@ import jwt
 from typing import TYPE_CHECKING
 from . import models
 from django.conf import settings
+from django.core.mail import EmailMessage
 
 if TYPE_CHECKING:
     from .models import User
@@ -72,3 +73,20 @@ def generate_token(user_id: int) -> str:
                        algorithm="HS256")
 
     return token
+
+
+class Util:
+    @staticmethod
+    def send_verifyEmail(data):
+        # try:
+        email = EmailMessage(
+            subject=data['email_subject'],
+            body=data['email_body'],
+            to=[data['email_address']]
+        )
+
+        delivery_response = email.send()
+        return delivery_response
+        # except IntegrityError:
+        #     raise IntegrityError(
+        #         "This account already exists.", status=status.HTTP_403_FORBIDDEN)

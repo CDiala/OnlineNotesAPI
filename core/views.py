@@ -1,10 +1,32 @@
 # from django.shortcuts import render
-from rest_framework import views, response, exceptions, permissions, status
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.db.models import F
+from django.urls import reverse
+from django.shortcuts import get_object_or_404
+
+from rest_framework import generics, views, response, exceptions, permissions, status
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from core.models import User
 from . import serializers as user_serializer, services as service, authentication
+from notebook.models import Owner
+import jwt
+
+
 # Create your views here.
 
 
 class RegisterAPI(views.APIView):
+    '''
+    This class handles the registration of a new User in our system 
+    and returns an access token for that user if successful or throws 
+    appropriate error messages otherwise
+    This API is used to register a new user in the system.
+    It takes email and password as parameters and returns JSON web 
+    token if successful else it will return error message.
+    '''
+
     def post(self, request):
         serializer = user_serializer.UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -13,13 +35,61 @@ class RegisterAPI(views.APIView):
 
         serializer.instance = service.create_user(user=data)
 
+        # send verify email to user
+        user_info = serializer.data
+        user = User.objects.get(email=user_info['email'])
+
+        token = RefreshToken.for_user(user).access_token
+
+        current_site = get_current_site(request).domain
+        relative_link = reverse('verify-email')
+        absolute_url = f'http://{current_site}{relative_link}?token={token}'
+        email_body = f'''Hi {user.first_name} {user.last_name},
+
+Welcome onboard! In order to activate your account, please verify your email by clicking on the link below:
+
+{absolute_url}
+
+Thank you!
+'''
+        data = {
+            "email_body": email_body,
+            "email_subject": 'Email Verification',
+            "email_address": user.email
+        }
+
+        service.Util.send_verifyEmail(data)
+
         return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class VerifyEmail(generics.GenericAPIView):
+    def get(self, request):
+        token = request.GET.get('token')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY)
+            user = get_object_or_404(User, email=payload['email'])
+
+            # not sure if this'll work
+            owner = Owner.objects.filter(user_id=F('user__id')).first()
+
+            if owner is None:
+                owner.user = user
+                owner.is_email_valid = True
+
+                owner.save()
+            return response.Response({'message': 'Email activated successfully.'}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError:
+            return response.Response({'message': 'Activation link expired.'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.DecodeError:
+            return response.Response({'message': 'Invalid token, request new one.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPI(views.APIView):
     """
-    This class handles the login functionality of a User and returns an 
-    access token if successful or raises 401 error otherwise
+    This class handles the login functionality of a User and returns the 
+    user's names, id and an access token if successful or raises 401 
+    error otherwise
     """
 
     def post(self, request):
@@ -30,16 +100,18 @@ class LoginAPI(views.APIView):
             raise exceptions.PermissionDenied(
                 "Provide login credentials.", status.HTTP_403_FORBIDDEN)
 
-        email = request.data["email"]
-        password = request.data["password"]
+        email = request.data.get("email")
+        password = request.data.get("password")
 
         user = service.user_selector(email)
 
         if user is None:
-            raise exceptions.AuthenticationFailed("Invalid credentials")
+            raise exceptions.AuthenticationFailed(
+                "Invalid credentials provided")
 
         if not user.check_password(raw_password=password):
-            raise exceptions.AuthenticationFailed("Invalid credentials")
+            raise exceptions.AuthenticationFailed(
+                "Invalid credentials provided")
 
         token = service.generate_token(user_id=user.id)
 
@@ -49,7 +121,8 @@ class LoginAPI(views.APIView):
         resp.status_code = 200
         resp.data = {
             "token": token,
-            "user": f"{user.first_name} {user.last_name}"
+            "user": f"{user.first_name} {user.last_name}",
+            "id": user.id
         }
 
         return resp

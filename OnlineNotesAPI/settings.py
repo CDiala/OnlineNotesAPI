@@ -10,8 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from dotenv import load_dotenv
 import os
 from pathlib import Path
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-y*69#)=r0ncenc!aur74qn#xbzi2u@z^t1d$iw&rbmwpa78uy-'
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY', default='django-secure-5%*rhfd345#$^&343g&*$56-7ic3wc6)n_5tasftb2od2445r#9*dxv__0wnm#&jk+!$bk#')
-JWT_SECRET = 'subscribetobuzz'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+JWT_SECRET = os.environ.get('JWT_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     'rest_framework',
+    'corsheaders',
     'djoser',
     "debug_toolbar",
     'notebook',
@@ -168,4 +170,18 @@ DJOSER = {
     }
 }
 
-# LOGIN_FIELD = 'email'
+# SMTP Config
+EMAIL_BACKEND = os.environ.get('SMTP_BACKEND')
+EMAIL_HOST = os.environ.get('SMTP_HOST')
+EMAIL_PORT = os.environ.get('SMTP_PORT')
+EMAIL_HOST_USER = os.environ.get('SMTP_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASS')
+EMAIL_USE_TLS = os.environ.get('SMTP_USE_TLS')
+# EMAIL_USE_SSL = ""
+# EMAIL_TIMEOUT = ""
+# EMAIL_SSL_KEYFILE = ""
+# EMAIL_SSL_CERTFILE = ""
+
+# Use config to access environment variables
+# REQUESTS_CA_BUNDLE = os.environ.get('REQUESTS_CA_BUNDLE', default='')
+# EMAIL_SSL_CERTFILE = os.environ.get('REQUESTS_CA_BUNDLE', default='')

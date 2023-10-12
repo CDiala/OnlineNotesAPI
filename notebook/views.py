@@ -4,6 +4,9 @@ from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.views import View
+from django.core.mail import EmailMessage
+from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status, permissions
@@ -11,7 +14,6 @@ from rest_framework import status, permissions
 from OnlineNotesAPI import renderers
 
 from core import authentication
-from core.models import User
 from .models import Note, Owner
 from .serializers import NoteSerializer
 from datetime import datetime
@@ -154,9 +156,9 @@ def filter_by_status(value: str):
 def order_notes(value: str):
     # return Note.objects.select_related('owner').all().order_by(value) or []
 
-    note = get_list_or_404(Note, order_by=value)
+    notes = get_list_or_404(Note, order_by=value)
 
-    return note
+    return notes
 
     # return get_list_or_404(
     #     Note.objects.select_related('owner').all().order_by(value))
@@ -230,7 +232,7 @@ Utility code to export note list to csv
 '''
 
 
-def DownloadCSV(request):
+def downloadCSV(request):
     notes = generate_user_notes()[1]
 
     print('csv data', notes)
@@ -247,3 +249,40 @@ def DownloadCSV(request):
                         note.created_at, note.due_date, note.priority, note.status, note.category])
 
     return response
+
+
+@csrf_exempt
+def sendEmail(request):
+    if request.method == 'POST':
+        file = request.FILES.get('file')
+        print(f"files:", file)
+
+        email = EmailMessage(
+            "Hello",
+            "Dear user, here is a mail for you. Reply using the available email. Thanks",
+            settings.EMAIL_HOST_USER,
+            ["dialachibuzo@yahoo.com", "ketu04life@yahoo.com"],
+            ["expowengenerator@gmail.com"],
+            reply_to=[settings.EMAIL_HOST_USER],
+            headers={"Message-ID": "foo"},
+        )
+
+        email.attach(
+            file.name,
+            file.read(),
+            file.content_type
+        )
+
+        message_response = email.send()
+
+        if message_response == 1:
+            return HttpResponse(f'{message_response} mails sent successfully', status=status.HTTP_200_OK)
+        else:
+            return HttpResponse(f'Failed to deliver email to recipients.')
+
+    return HttpResponse('Method not allowed', status=status.HTTP_403_FORBIDDEN)
+
+
+def show_uploader(request):
+    context = {}
+    return render(request, 'file_upload.html', context)
