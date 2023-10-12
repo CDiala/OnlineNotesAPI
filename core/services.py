@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from . import models
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.db import IntegrityError
+from rest_framework import response, status
 
 if TYPE_CHECKING:
     from .models import User
@@ -78,15 +80,17 @@ def generate_token(user_id: int) -> str:
 class Util:
     @staticmethod
     def send_verifyEmail(data):
-        # try:
-        email = EmailMessage(
-            subject=data['email_subject'],
-            body=data['email_body'],
-            to=[data['email_address']]
-        )
+        try:
+            email = EmailMessage(
+                subject=data['email_subject'],
+                body=data['email_body'],
+                to=[data['email_address']]
+            )
 
-        delivery_response = email.send()
-        return delivery_response
-        # except IntegrityError:
-        #     raise IntegrityError(
-        #         "This account already exists.", status=status.HTTP_403_FORBIDDEN)
+            delivery_response = email.send()
+            return delivery_response
+        except IntegrityError as e:
+            return response.Response(
+                {"detail": "This account already exists.", "info": e.args[0:]}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return response.Response({'detail': e.args[0:]})

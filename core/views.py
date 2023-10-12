@@ -1,9 +1,10 @@
-# from django.shortcuts import render
+from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import F
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 
 from rest_framework import generics, views, response, exceptions, permissions, status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,70 +20,79 @@ import jwt
 
 class RegisterAPI(views.APIView):
     '''
-    This class handles the registration of a new User in our system 
-    and returns an access token for that user if successful or throws 
-    appropriate error messages otherwise
-    This API is used to register a new user in the system.
-    It takes email and password as parameters and returns JSON web 
-    token if successful else it will return error message.
+    This API is used to register a new user in the system. It takes first_name, 
+    last_name, email and password as parameters. Upon creating a new user, an 
+    email is sent to their email address, so they can verify their email address.
     '''
 
     def post(self, request):
-        serializer = user_serializer.UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = user_serializer.UserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        data = serializer.validated_data
+            data = serializer.validated_data
 
-        serializer.instance = service.create_user(user=data)
+            serializer.instance = service.create_user(user=data)
 
-        # send verify email to user
-        user_info = serializer.data
-        user = User.objects.get(email=user_info['email'])
+            user_info = serializer.data
+            user = User.objects.get(email=user_info['email'])
 
-        token = RefreshToken.for_user(user).access_token
+            token = RefreshToken.for_user(user).access_token
 
-        current_site = get_current_site(request).domain
-        relative_link = reverse('verify-email')
-        absolute_url = f'http://{current_site}{relative_link}?token={token}'
-        email_body = f'''Hi {user.first_name} {user.last_name},
+            current_site = get_current_site(request).domain
+            relative_link = reverse('verify-email')
+            absolute_url = f'http://{current_site}{relative_link}?token={token}'
+            email_body = f'''Hi {user.first_name} {user.last_name},
 
 Welcome onboard! In order to activate your account, please verify your email by clicking on the link below:
 
 {absolute_url}
 
-Thank you!
-'''
-        data = {
-            "email_body": email_body,
-            "email_subject": 'Email Verification',
-            "email_address": user.email
-        }
+Can't wait to see more of you on our platform. Until then, take care and be safe
 
-        service.Util.send_verifyEmail(data)
+Best regards!
+The Team
+    '''
+            data = {
+                "email_body": email_body,
+                "email_subject": 'Online NoteTaker - Email Verification',
+                "email_address": user.email
+            }
 
-        return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+            service.Util.send_verifyEmail(data)
+
+            return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+        except IntegrityError as e:
+            return response.Response({'detail': 'Unable to process request.', 'message': e.args[0:]}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return response.Response({'detail': e.args[0:]})
 
 
 class VerifyEmail(generics.GenericAPIView):
     def get(self, request):
-        token = request.GET.get('token')
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
-            user = get_object_or_404(User, email=payload['email'])
+            token = request.GET.get('token')
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms='HS256')
 
-            # not sure if this'll work
-            owner = Owner.objects.filter(user_id=F('user__id')).first()
+            user = User.objects.filter(id=payload['user_id']).first()
+
+            owner = Owner.objects.filter(user_id=user.id).first()
 
             if owner is None:
+                owner = Owner()
                 owner.user = user
-                owner.is_email_valid = True
 
-                owner.save()
+            owner.is_email_valid = True
+            owner.save()
+
             return response.Response({'message': 'Email activated successfully.'}, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError:
             return response.Response({'message': 'Activation link expired.'}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.DecodeError:
             return response.Response({'message': 'Invalid token, request new one.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response.Response({'detail': e.args[0:]})
 
 
 class LoginAPI(views.APIView):
@@ -163,24 +173,80 @@ class LogoutAPI(views.APIView):
 
 class UpdatePassword(views.APIView):
     '''
-    This view updates a user's password by verifying 
+    This endpoint updates a user's password by verifying 
     old passwords first then updating it to new one
     '''
 
     def patch(self, request):
 
+        serializer = user_serializer.UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         user_email = request.data.get('email')
 
         user = get_object_or_404(User, email=user_email)
 
-        print('\n\n\nold pwd', user.password)
-
         new_password = request.data.get('password')
 
-        if new_password is not None:
+        if new_password:
             user.set_password(request.data.get('password'))
 
-        # user.password = request.data.get('password')
-        print('\n\n\nnew pwd', user.password)
-        user.save()
-        pass
+            user.save()
+            return response.Response({'detail': 'Password updated successfully'}, status=status.HTTP_200_OK)
+
+        return response.Response({'detail': 'Password not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPassword(views.APIView):
+    def post(self, request):
+
+        if not request.data:
+            return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_email = request.data.get('email')
+
+        if not user_email:
+            return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = get_object_or_404(User, email=user_email)
+
+        token = RefreshToken.for_user(user).access_token
+
+        current_site = get_current_site(request).domain
+        relative_link = reverse('password-reset')
+        absolute_url = f'http://{current_site}{relative_link}?token={token}'
+
+        email_body = f'''
+Hi {user.first_name} {user.last_name},
+
+We believe you have requested to reset your password.
+
+Follow the link below to complete the password reset process.
+
+{absolute_url}
+
+Otherwise, disregard the email.
+
+Stay safe!
+'''
+        # return response.Response('terminated')
+
+        try:
+            email = EmailMessage(
+                "Request - Password Reset",
+                email_body,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                reply_to=[settings.EMAIL_HOST_USER],
+                headers={"Message-ID": "foo"},
+            )
+            print('\n\n\n\nemail body:', email_body)
+
+            message_response = email.send()
+
+            if message_response == 1:
+                return response.Response('A link has been sent to your email to reset your password.', status=status.HTTP_200_OK)
+            else:
+                return response.Response(f'Failed to deliver email to recipients.')
+        except Exception as e:
+            return response.Response({'detail': 'Unable to complete request.', 'message': e.args[0:]}, status=status.HTTP_403_FORBIDDEN)
