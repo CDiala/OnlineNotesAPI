@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.apps import apps
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, F
 from django.views import View
 from django.core.mail import EmailMessage
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +14,7 @@ from rest_framework import status, permissions
 from OnlineNotesAPI import renderers
 
 from core import authentication
+from core.models import User
 from .models import Note, Owner
 from .serializers import NoteSerializer
 from datetime import datetime
@@ -30,15 +31,17 @@ class NoteList(APIView):
         '''
         Get all notes created by the authenticated user.
         '''
-        print('meta request\n', request.COOKIES.get('jwt'))
-        print('request.query_params', request.query_params)
+        requester = request.user
+
+        user = User.objects.get(email=requester)
 
         notes_queryset = Note.objects.select_related(
-            'owner').all()
+            'owner').filter(owner__user_id=user.id).all()
+
         note_status = request.query_params.get('status')
 
         query_param_keys = list(dict.keys(request.query_params))
-        # print('is there query params?:', query_param_keys)
+
         query_param_keys = [key.lower() for key in query_param_keys]
 
         if 'status' in query_param_keys:
