@@ -1,26 +1,21 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, get_list_or_404, render
+from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.views import View
 from django.core.mail import EmailMessage
 from django.views.decorators.csrf import csrf_exempt
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status, permissions
-
 from OnlineNotesAPI import renderers
-
 from core import authentication
 from core.models import User
 from .models import Note, Owner
 from .serializers import NoteSerializer
 from datetime import datetime
 import csv
-
-# Create your views here.
 
 
 class NoteList(APIView):
@@ -50,8 +45,10 @@ class NoteList(APIView):
                 notes_queryset = filter_by_status(note_status, user.id)
             elif 'ordering' in query_param_keys:
                 note_status = request.query_params.get('ordering')
-                print('ordering', note_status)
                 notes_queryset = order_notes(note_status, user.id)
+            elif 'category' in query_param_keys:
+                note_status = request.query_params.get('category')
+                notes_queryset = categorize_notes(note_status, user.id)
 
             serializer = NoteSerializer(notes_queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -164,45 +161,84 @@ class NoteDetail(APIView):
 
 
 def filter_by_status(value: str, user_id: int):
-    if value.title() == 'Unfinished':
-        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(Q(status='N') | Q(status='P'))
-    elif value.title() == 'Overdue':
-        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(due_date__lte=datetime.utcnow())
-    elif value.title() == 'Done':
-        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(status='C')
+    """
+    Function that filters notes based on the following status:
+    'Unfinished': Tasks yet to be completed.
+    'Overdue': All tasks (completed or not) whose due dates are more than the current date.
+    'Done': Tasks that have been completed
+    """
+
+    try:
+        notes_queryset = Note.objects.select_related(
+            'owner').filter(owner__user_id=user_id).all()
+
+        if value.title() == 'Unfinished':
+            return notes_queryset.filter(Q(status='N') | Q(status='P'))
+        elif value.title() == 'Overdue':
+            return notes_queryset.filter(due_date__lte=datetime.utcnow())
+        elif value.title() == 'Done':
+            return notes_queryset.filter(status='C')
+    except Exception as e:
+        return Response({'detail': e.args[0:]}, status=status.HTTP_404_NOT_FOUND)
 
 
 def order_notes(value: str, user_id: int):
-    return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().order_by(value) or []
+    """
+    Function that orders notes based on: 
+    * due date, 
+    * priority 
+    * created date
+    """
+    try:
+        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().order_by(value)
+    except Exception as e:
+        return Response({'detail': e.args[0:]}, status=status.HTTP_404_NOT_FOUND)
 
 
-''' FIX THIS HARDCODED DATA ASAP '''
+def categorize_notes(value: str, user_id: int):
+    """
+    Function that groups notes into one of the following categories:
+    * None
+    * Blue
+    * Green
+    * Orange
+    * Purple
+    * Red
+    * Yellow
+    """
+    return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(category=value[0])
 
 
-def generate_user_notes():
-
-    notes = Note.objects.select_related('owner').all().order_by('id')
+def generate_user_notes(user_email):
+    user = User.objects.get(email=user_email)
+    notes = Note.objects.select_related('owner').filter(
+        owner__user_id=user.id).all().order_by('id')
     note_list = notes[0:]
 
     data = {
-        "user": "Chibuzo Diala",
-        "notes": note_list
+        "user": f"{user.first_name} {user.last_name}",
+        "created_date": datetime.utcnow(),
+        "notes": note_list,
+        "last_login": user.last_login
     }
 
     return (data, note_list)
 
-# Opens up page as PDF
 
+class ViewPDF(APIView):
+    authentication_classes = (authentication.CustomUserAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-class ViewPDF(View):
     def get(self, request, *args, **kwargs):
+        try:
+            pdf = renderers.render_to_pdf(
+                'app/pdf_template.html', generate_user_notes(request.user)[0])
+            return HttpResponse(pdf, content_type='application/pdf')
+        except Exception as e:
+            return Response({'detail': e.args[0:]})
 
-        pdf = renderers.render_to_pdf(
-            'app/pdf_template.html', generate_user_notes()[0])
-        return HttpResponse(pdf, content_type='application/pdf')
 
-
-# Automaticly downloads to PDF file
+# Automatically downloads to PDF file
 class DownloadPDF(View):
     def get(self, request, *args, **kwargs):
 
@@ -216,17 +252,10 @@ class DownloadPDF(View):
         return response
 
 
-def index(request):
-    context = {}
-    return render(request, 'app/index.html', context)
-
-
-'''
-Utility code to export note list to csv
-'''
-
-
 def downloadCSV(request):
+    '''
+    Utility code to export note list to csv
+    '''
     notes = generate_user_notes()[1]
 
     print('csv data', notes)
@@ -247,12 +276,16 @@ def downloadCSV(request):
 
 @csrf_exempt
 def sendEmail(request):
+    '''
+    Send email with attachment to logged in user. 
+    File attachment is required.
+    '''
     if request.method == 'POST':
         file = request.FILES.get('file')
         print(f"files:", file)
 
         email = EmailMessage(
-            "Hello",
+            "Online Note Manager - Notes Summary",
             "Dear user, here is a mail for you. Reply using the available email. Thanks",
             settings.EMAIL_HOST_USER,
             ["dialachibuzo@yahoo.com", "ketu04life@yahoo.com"],
@@ -278,9 +311,15 @@ def sendEmail(request):
 
 
 def show_uploader(request):
+    '''
+    Display html template for testing email delivery with attachment
+    '''
     context = {}
     return render(request, 'file_upload.html', context)
 
 
 def page_not_found():
+    '''
+    Display 404 page
+    '''
     return Response({'detail': 'page not found.'})
