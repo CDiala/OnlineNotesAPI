@@ -1,6 +1,8 @@
+import json
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.conf import settings
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
 from django.views import View
@@ -318,8 +320,17 @@ def show_uploader(request):
     return render(request, 'file_upload.html', context)
 
 
-def page_not_found():
-    '''
-    Display 404 page
-    '''
-    return Response({'detail': 'page not found.'})
+def redirect_noexist(request):
+    """
+    This function based view displays a 404-error page to anyone trying to 
+    access a non-configured URL.
+    """
+    # message = "Were sorry, this link isn't available. You will be redirected to the signup page."
+    # response = redirect('register')
+    # response.status_code = 307
+    # messages.add_message(request, messages.INFO, message)
+    # print('\n\n\n\n\nwildcard response', messages)
+    # return response
+    # return HttpResponse(json.dumps({'detail': 'page not found.'}))
+    context = {'detail': 'page not found.'}
+    return render(request, '404.html', context)

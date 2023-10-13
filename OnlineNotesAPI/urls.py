@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+
+from notebook import views
 
 
 admin.site.site_header = 'Online Notes API'
@@ -25,7 +27,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('notebook.urls')),
     path('api/v1/', include('core.urls')),
-    # path('auth/', include('djoser.urls')),
-    # path('auth/', include('djoser.urls.jwt')),
     path("__debug__/", include("debug_toolbar.urls")),
+    re_path(r'^.*$', views.redirect_noexist, name='wildcard_route'),
 ]
