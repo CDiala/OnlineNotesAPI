@@ -1,74 +1,89 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
-    <!-- <style>
-    @page {
-        size: a4 portrait;
-        @frame header_frame {           /* Static Frame */
-            -pdf-frame-content: header_content;
-            left: 50pt; width: 512pt; top: 50pt; height: 40pt;
-        }
-        @frame content_frame {          /* Content Frame */
-            left: 50pt; width: 512pt; top: 90pt; height: 632pt;
-        }
-        @frame footer_frame {           /* Another static Frame */
-            -pdf-frame-content: footer_content;
-            left: 50pt; width: 512pt; top: 772pt; height: 20pt;
-        }
-    }
-</style> -->
+    <style>
+      #header_content h1,
+      #header_content h2 {
+        text-align: center; 
+        text-decoration: underline; 
+        font-style: italic; 
+        margin: 0;
+      }
+
+      #mini-table tr {
+        padding: 1px 0;
+      }
+
+      #notes_table {
+        padding: 5px 0;
+      }
+
+      #notes_table .tr1 {
+        border-bottom: 1px solid grey;
+      }
+
+      #notes_table .tr2 {
+        border-bottom: 1px solid rgb(233, 197, 197);
+      }
+
+      #notes_table .tr1,
+      #notes_table .tr2 {
+        text-align: center
+      }
+
+      #notes_table th {
+        padding: 5px;
+      }
+
+      #notes_table td {
+        vertical-align: middle;
+      }
+    </style>
   </head>
 
   <body>
     <!-- Content for Static Frame 'header_frame' -->
     <div id="header_content">
-      <h3>{{user}}'s notes</h3>
+      <h1>ONLINE NOTE MANAGEMENT SYSTEM</h1>
+      <h2>SUMMARY REPORT</h2>
     </div>
 
-    <!-- Content for Static Frame 'footer_frame' -->
-    <!-- <div id="footer_content">(c) - page <pdf:pagenumber>
-        of <pdf:pagecount>
-    </div> -->
-
     <!-- HTML Content -->
-    <!-- <table>
-    		<tr>
-    			<td>{{data.address}}</td>
-    			<td>{{data.phone}}</td>
-    		</tr>
-    		<tr>
-    			<td>{{data.city}} {{data.state}},</td>
-    			<td>{{data.email}}</td>
-    		</tr>
-    		<tr>
-    			<td>{{data.zipcode}}</td>
-    			<td>{{data.website}}</td>
-    		</tr>
-    </table> -->
+    <table id="mini-table">
+      <tr>
+        <td><strong>User:</strong> {{user}}</td>
+      </tr>
+      <!-- <tr>
+        <td><strong>Last login:</strong> {{last_login}}</td>
+      </tr> -->
+      <tr>
+        <td><strong>Run Date:</strong> {{created_date}}</td>
+      </tr>
+    </table>
 
     <hr />
 
-    <table>
-      <tr>
-        <th>id</th>
-        <th>title</th>
-        <th>slug</th>
-        <th>owner</th>
-        <th>content</th>
-        <th>created_at</th>
-        <th>due_date</th>
-        <th>priority</th>
-        <th>status</th>
-        <th>category</th>
+    <table id="notes_table">
+      <tr class="tr1">
+        <th>S/N</th>
+        <th>Title</th>
+        <th>Slug</th>
+        <th>Owner</th>
+        <th>Content</th>
+        <th>Date Created</th>
+        <th>Due Date</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Category</th>
       </tr>
       {% for note in notes %}
-      <tr style="text-align: center">
-        <td>{{note.id}}</td>
+      <tr class="tr2">
+        <td>{{forloop.counter}}</td>
         <td>{{note.title}}</td>
         <td>{{note.slug}}</td>
         <td>{{note.owner}}</td>
         <td>{{note.content}}</td>
-        <td>{{note.created_at}}</td>
+        <td>{{note.created_at|date}}</td>
         <td>{{note.due_date}}</td>
         <td>{{note.priority}}</td>
         <td>{{note.status}}</td>
@@ -79,6 +94,10 @@
 
     <hr />
 
-    <!-- <p><strong>Total: $8878.28</strong></p> -->
+    <p><strong>Total: {{notes|length}}</strong></p>
+
+    <div id="footer_content">(c) - page <pdf:pagenumber>
+        of <pdf:pagecount>
+    </div>
   </body>
 </html>
