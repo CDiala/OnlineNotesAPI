@@ -31,29 +31,32 @@ class NoteList(APIView):
         '''
         Get all notes created by the authenticated user.
         '''
-        requester = request.user
+        try:
+            requester = request.user
 
-        user = User.objects.get(email=requester)
+            user = User.objects.get(email=requester)
 
-        notes_queryset = Note.objects.select_related(
-            'owner').filter(owner__user_id=user.id).all()
+            notes_queryset = Note.objects.select_related(
+                'owner').filter(owner__user_id=user.id).all()
 
-        note_status = request.query_params.get('status')
-
-        query_param_keys = list(dict.keys(request.query_params))
-
-        query_param_keys = [key.lower() for key in query_param_keys]
-
-        if 'status' in query_param_keys:
             note_status = request.query_params.get('status')
-            notes_queryset = filter_by_status(note_status)
-        elif 'ordering' in query_param_keys:
-            note_status = request.query_params.get('ordering')
-            print('ordering', note_status)
-            notes_queryset = order_notes(note_status)
 
-        serializer = NoteSerializer(notes_queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            query_param_keys = list(dict.keys(request.query_params))
+
+            query_param_keys = [key.lower() for key in query_param_keys]
+
+            if 'status' in query_param_keys:
+                note_status = request.query_params.get('status')
+                notes_queryset = filter_by_status(note_status, user.id)
+            elif 'ordering' in query_param_keys:
+                note_status = request.query_params.get('ordering')
+                print('ordering', note_status)
+                notes_queryset = order_notes(note_status, user.id)
+
+            serializer = NoteSerializer(notes_queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': e.args[0:]}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         '''
@@ -101,7 +104,7 @@ class NoteList(APIView):
 
 class NoteDetail(APIView):
     """
-    This class is used to retrieve, update or delete notes based on ID.
+    This class is used to retrieve, update or delete a note based on ID.
     """
 
     authentication_classes = (authentication.CustomUserAuthentication, )
@@ -109,19 +112,35 @@ class NoteDetail(APIView):
 
     def get(self, request, note_id):
         """
-        This method retrieves the specific note details of the given id and 
-        returns it in json format if found else raises 404 error code.
+        This method retrieves a specific note using the provided id and 
+        returns it in json format if found else raises 404 error code. 
+        Only notes created by the logged in user are returned.
         """
-        note = get_object_or_404(Note, pk=note_id)
-        serializer = NoteSerializer(note)
-        return Response(serializer.data)
+        try:
+            requester = request.user
+            user = User.objects.get(email=requester)
+
+            notes_queryset = Note.objects.select_related(
+                'owner').filter(owner__user_id=user.id).all()
+
+            note = get_object_or_404(notes_queryset, pk=note_id)
+            serializer = NoteSerializer(note)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': e.args[0:]}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, note_id):
         """
         This method updates a note using the specific note details of the given id 
         and returns it in json format if found else raises 404 error code.
         """
-        note = get_object_or_404(Note, pk=note_id)
+        requester = request.user
+        user = User.objects.get(email=requester)
+
+        notes_queryset = Note.objects.select_related(
+            'owner').filter(owner__user_id=user.id).all()
+
+        note = get_object_or_404(notes_queryset, pk=note_id)
         serializer = NoteSerializer(note, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -133,50 +152,31 @@ class NoteDetail(APIView):
         identifier i.e., Note Id provided as parameter. If not present then
         raises HTTP Not Found Error with appropriate message.
         """
-        note = get_object_or_404(Note, pk=note_id)
+        requester = request.user
+        user = User.objects.get(email=requester)
+
+        notes_queryset = Note.objects.select_related(
+            'owner').filter(owner__user_id=user.id).all()
+
+        note = get_object_or_404(notes_queryset, pk=note_id)
         note.delete()
         return Response({'response': 'deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-def filter_by_status(value: str):
+def filter_by_status(value: str, user_id: int):
     if value.title() == 'Unfinished':
-        return Note.objects.select_related('owner').all().filter(Q(status='N') | Q(status='P'))
+        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(Q(status='N') | Q(status='P'))
     elif value.title() == 'Overdue':
-        return Note.objects.select_related('owner').all().filter(due_date__lte=datetime.utcnow())
+        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(due_date__lte=datetime.utcnow())
     elif value.title() == 'Done':
-        return Note.objects.select_related('owner').all().filter(status='C')
+        return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().filter(status='C')
 
 
-def order_notes(value: str):
-    # return Note.objects.select_related('owner').all().order_by(value) or []
+def order_notes(value: str, user_id: int):
+    return Note.objects.select_related('owner').filter(owner__user_id=user_id).all().order_by(value) or []
 
-    notes = get_list_or_404(Note, order_by=value)
 
-    return notes
-
-    # return get_list_or_404(
-    #     Note.objects.select_related('owner').all().order_by(value))
-
-    # return notes
-
-    # try:
-    #     order_by = self.request.GET.get('ordering', None)
-    #     order_qs = Note.objects.select_related(
-    #         'owner').all().order_by(order_by)
-    #     # return order_qs
-    # except Exception as e:
-    #     return Response(f'no field named {value.replace("-", "")}', status=status.HTTP_400_BAD_REQUEST)
-
-    # {
-    #     "title": "welcome back",
-    #     "slug": "welcome-back",
-    #     "owner": 1,
-    #     "content": "..."
-    #     "due_date": "2023-10-02",
-    #     "priority": "L",
-    #     "status": "P",
-    #     "category": "B"
-    # }
+''' FIX THIS HARDCODED DATA ASAP '''
 
 
 def generate_user_notes():
@@ -280,3 +280,7 @@ def sendEmail(request):
 def show_uploader(request):
     context = {}
     return render(request, 'file_upload.html', context)
+
+
+def page_not_found():
+    return Response({'detail': 'page not found.'})
