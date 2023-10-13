@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
-from django.apps import apps
 from django.conf import settings
-from django.db.models import Q, F
+from django.db import transaction
+from django.db.models import Q
 from django.views import View
 from django.core.mail import EmailMessage
 from django.views.decorators.csrf import csrf_exempt
@@ -56,56 +56,47 @@ class NoteList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        # # insert owner_id into owner table, then insert note data into note table
-        if 'title' not in request.data or 'content' not in request.data or 'slug' not in request.data or 'owner' not in request.data:
-            return Response('Bad request', status=status.HTTP_400_BAD_REQUEST)
-
-        # serializer = NoteSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-
-        # print('raw request', request.data['owner'])
-        # serializer.save()
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        note_owner_id = request.data['owner']
-        print('note owner id', note_owner_id)
-        # note_owner_id = serializer.validated_data
-        note_owner = Owner.objects.filter(pk=note_owner_id).first()
-        pk_value = note_owner.user_id if note_owner is not None else note_owner_id
-
-        user = get_object_or_404(apps.get_model(
-            settings.AUTH_USER_MODEL).objects.filter(pk=pk_value))
-
+        '''
+        Create a new note with title, slug and content provided as part of POST data.
+        The method validates that the requester is a registered member, after
+        which the note is saved. If user's email isn't validated, this endpoint creates 
+        the user as the owner of the note and sets email valid to False.
+        '''
         try:
-            # # transaction goes here
-            # # with transaction.atomic():
-            # # part 1
-            # owner = Owner()
-            # owner.is_email_valid = 1
-            # owner.user = user
-            # if note_owner is None:
-            #     owner.save()
+            raw_user_data = request.user
 
-            # part 2
-            # serializer.save()
-            note = Note()
-            note.title = request.data['title']
-            note.content = request.data['content']
-            note.slug = request.data['slug'] or '-'
-            # note.due_date = request.data['due_date'] or datetime.datetime.utcnow(
-            # ) + datetime.timedelta(hours=48)
-            note.owner = note_owner
-            # note.category = request.data['category'] or 'N'
-            # note.status = request.data['status'] or 'N'
-            # note.priority = request.data['priority'] or 'M'
-            note.save()
+            if raw_user_data:
+                user = get_object_or_404(User, email=raw_user_data)
 
-            print('note owner', request.data)
+                new_note_owner = Owner.objects.select_related('user').filter(
+                    user_id=user.id).first()
 
-            return Response({"response": "record created successfully."}, status=status.HTTP_201_CREATED)
+                # if new_note_owner is None, insert into owner table before creating note
+                with transaction.atomic():
+                    if new_note_owner is None:
+                        new_note_owner = Owner()
+                        new_note_owner.is_email_valid = False
+                        new_note_owner.user = user
+                        new_note_owner.save()
+
+                    new_request_data = {**request.data,
+                                        'owner': new_note_owner.id}
+
+                    # save new note
+                    serializer = NoteSerializer(
+                        data=new_request_data)
+                    serializer.is_valid(raise_exception=True)
+
+                    validated_data = serializer.validated_data
+
+                    new_note = Note(**validated_data)
+
+                    new_note.save()
+
+                return Response({"response": "record created successfully.", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({'info': 'Unable to execute request:'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'detail': e.args[0:]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class NoteDetail(APIView):
