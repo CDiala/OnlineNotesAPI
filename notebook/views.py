@@ -218,7 +218,7 @@ def generate_user_notes(user_email):
     note_list = notes[0:]
 
     data = {
-        "user": f"{user.first_name} {user.last_name}",
+        "user": f"{user.first_name.title()} {user.last_name.title()}",
         "created_date": datetime.utcnow(),
         "notes": note_list,
         "last_login": user.last_login
@@ -299,40 +299,64 @@ class DownloadCSV(APIView):
         return response
 
 
-@csrf_exempt
-def sendEmail(request):
+class SendAttachment(APIView):
     '''
-    Send email with attachment to logged in user. 
-    File attachment is required.
+    This class downloads notes list as PDF.
     '''
-    if request.method == 'POST':
-        file = request.FILES.get('file')
-        print(f"files:", file)
+    authentication_classes = (authentication.CustomUserAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-        email = EmailMessage(
-            "Online Note Manager - Notes Summary",
-            "Dear user, here is a mail for you. Reply using the available email. Thanks",
-            settings.EMAIL_HOST_USER,
-            ["dialachibuzo@yahoo.com", "ketu04life@yahoo.com"],
-            ["expowengenerator@gmail.com"],
-            reply_to=[settings.EMAIL_HOST_USER],
-            headers={"Message-ID": "foo"},
-        )
+    @csrf_exempt
+    def post(self, request):
+        '''
+        Send email with attachment to logged in user. 
+        File attachment is required.
+        '''
+        try:
 
-        email.attach(
-            file.name,
-            file.read(),
-            file.content_type
-        )
+            requester = request.user
+            file = request.FILES.get('file')
 
-        message_response = email.send()
+            user = get_object_or_404(User, email=requester)
 
-        if message_response == 1:
-            return HttpResponse(f'{message_response} mails sent successfully', status=status.HTTP_200_OK)
-        else:
-            return HttpResponse(f'Failed to deliver email to recipients.')
+            email_body = f'''
+Hi {user.first_name.title()} {user.last_name.title()},
 
-    return HttpResponse('Method not allowed', status=status.HTTP_403_FORBIDDEN)
+The attached document contains all notes you have saved on our platform.
+
+Look out for the high-priority notes and close them out as soon as possible.
+
+Don't forget to update their status as things change.
+
+Stay safe!
+
+Best regards,
+The Team
+            '''
+
+            email = EmailMessage(
+                "Online Note Manager - Notes Summary",
+                email_body,
+                settings.EMAIL_HOST_USER,
+                [requester],
+                reply_to=[settings.EMAIL_HOST_USER],
+                headers={"Message-ID": "foo"},
+            )
+
+            email.attach(
+                file.name,
+                file.read(),
+                file.content_type
+            )
+
+            message_response = email.send()
+
+            if message_response == 1:
+                return HttpResponse(f'{message_response} mail sent successfully', status=status.HTTP_200_OK)
+            else:
+                return HttpResponse(f'Failed to deliver email to recipients.')
+        except Exception as e:
+            return Response({'detail': e.args[0:]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def show_uploader(request):
