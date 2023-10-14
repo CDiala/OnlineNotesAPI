@@ -42,7 +42,7 @@ class RegisterAPI(views.APIView):
             current_site = get_current_site(request).domain
             relative_link = reverse('verify-email')
             absolute_url = f'http://{current_site}{relative_link}?token={token}'
-            email_body = f'''Hi {user.first_name} {user.last_name},
+            email_body = f'''Hi {user.first_name.title()} {user.last_name.title()},
 
 Welcome onboard! In order to activate your account, please verify your email by clicking on the link below:
 
@@ -130,7 +130,7 @@ class LoginAPI(views.APIView):
             resp.status_code = 200
             resp.data = {
                 "token": token,
-                "user": f"{user.first_name} {user.last_name}",
+                "user": f"{user.first_name.title()} {user.last_name.title()}",
                 "id": user.id
             }
 
@@ -157,7 +157,7 @@ class UserAPI(views.APIView):
 class LogoutAPI(views.APIView):
     """
     This endpoint logs out the current
-    logged in user and deletes their cookie
+    logged in user.
     """
     authentication_classes = (authentication.CustomUserAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
