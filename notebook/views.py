@@ -241,39 +241,62 @@ class ViewPDF(APIView):
 
 
 # Automatically downloads to PDF file
-class DownloadPDF(View):
-    def get(self, request, *args, **kwargs):
+class DownloadPDF(APIView):
+    '''
+    This class downloads notes list as PDF.
+    '''
+    authentication_classes = (authentication.CustomUserAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
 
         pdf = renderers.render_to_pdf(
-            'app/pdf_template.html', generate_user_notes()[0])
+            'app/pdf_template.html', generate_user_notes(request.user)[0])
 
         response = HttpResponse(pdf, content_type='application/pdf')
-        filename = "Note_%s.pdf" % ("12341231")
+        filename = "Notes List_%s.pdf" % (
+            datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S"))
         content = "attachment; filename=%s" % (filename)
         response['Content-Disposition'] = content
         return response
 
 
-def downloadCSV(request):
+class DownloadCSV(APIView):
     '''
-    Utility code to export note list to csv
+    This class downloads notes list as PDF.
     '''
-    notes = generate_user_notes()[1]
+    authentication_classes = (authentication.CustomUserAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-    print('csv data', notes)
+    def get(self, request):
+        '''
+        Utility code that builds a list of user's notes into a CSV and downloads the file to their machine.
+        '''
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="notes.csv"'
+        notes = generate_user_notes(request.user)[1]
 
-    writer = csv.writer(response)
-    writer.writerow(['id', 'title', 'slug', 'owner', 'content', 'created_at',
-                    'due_date', 'priority', 'status', 'category'])
+        note_list = notes[0:]
 
-    for note in notes:
-        writer.writerow([note.id, note.title, note.slug, note.owner, note.content,
-                        note.created_at, note.due_date, note.priority, note.status, note.category])
+        note_fields = [
+            field.name for field in note_list.first()._meta.get_fields()]
 
-    return response
+        note_values = [
+            [value for key, value in note.items() if key is not 'id'] for note in note_list.values()]
+
+        current_timestamp = datetime.strftime(
+            datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response[
+            'Content-Disposition'] = f'attachment; filename={"Notes list_%s.csv" % (current_timestamp)}'
+
+        writer = csv.writer(response)
+        writer.writerow(note_fields)
+
+        for index, note in enumerate(note_values):
+            writer.writerow([index + 1, *note])
+
+        return response
 
 
 @csrf_exempt
