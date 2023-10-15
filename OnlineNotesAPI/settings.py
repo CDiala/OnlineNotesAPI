@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 from dotenv import load_dotenv
 import os
 from pathlib import Path
@@ -88,11 +89,11 @@ WSGI_APPLICATION = 'OnlineNotesAPI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'notebookdb',
-        'HOST': 'localhost',
-        'USER': 'root',
-        'PASSWORD': 'admin@123'
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME'),
+        'HOST': os.environ.get('DB_HOST'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASS'),
     }
 }
 
@@ -159,6 +160,8 @@ REST_FRAMEWORK = {
 # Configure django-rest-framework-simplejwt to use the Authorization: JWT <access_token> header:
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
+    # Set token expiration time to 20 minutes
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
 }
 
 AUTH_USER_MODEL = 'core.User'
@@ -177,11 +180,3 @@ EMAIL_PORT = os.environ.get('SMTP_PORT')
 EMAIL_HOST_USER = os.environ.get('SMTP_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASS')
 EMAIL_USE_TLS = os.environ.get('SMTP_USE_TLS')
-# EMAIL_USE_SSL = ""
-# EMAIL_TIMEOUT = ""
-# EMAIL_SSL_KEYFILE = ""
-# EMAIL_SSL_CERTFILE = ""
-
-# Use config to access environment variables
-# REQUESTS_CA_BUNDLE = os.environ.get('REQUESTS_CA_BUNDLE', default='')
-# EMAIL_SSL_CERTFILE = os.environ.get('REQUESTS_CA_BUNDLE', default='')
