@@ -33,7 +33,12 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   cd online-notes-api
   ```
 
-- Create and activate a virtual environment using [this guide](https://docs.python.org/3/library/venv.html)
+- Create and activate a virtual environment using [this guide](https://docs.python.org/3/library/venv.html) or run
+
+  ```
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
 
 - Install the required packages:
 
@@ -41,12 +46,32 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   pip install -r requirements.txt
   ```
 
-- Setup .env file with the following variables:
+- Install MySQL and create a new MySQL database using [the official guide](https://dev.mysql.com/doc/mysql-getting-started/en/) for your specific OS.
+
+- Add the following to your **Settings** file:
+
+  ```
+  import os
+  ...
+  DATABASES = {
+    'default': {
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME'),
+        'HOST': os.environ.get('DB_HOST'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASS'),
+    }
+  }
+  ```
+
+- Setup .env file with the following variables. Ensure no white space between the key and value **[e.g. SECRET_KEY=mY-sEcReT_KeY]**, and string values shouldn't be quoted.
 
   ```
   SECRET_KEY
   JWT_SECRET
+  DB_ENGINE
   DB_NAME
+  DB_HOST
   DB_USER
   DB_PASS
   SMTP_BACKEND
@@ -60,7 +85,14 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 - Apply migrations:
 
   ```
+  python3 manage.py makemigrations
   python3 manage.py migrate
+  ```
+
+- Create a new superuser
+
+  ```
+  python3 manage.py createsuperuser
   ```
 
 - Start the development server:
@@ -69,7 +101,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   python3 manage.py runserver [port]
   ```
 
-The API will be accessible at http://127.0.0.1:8000/ or any port specified above
+  The app will be accessible at http://127.0.0.1:8000/ or any port specified above
 
 ### Usage
 
