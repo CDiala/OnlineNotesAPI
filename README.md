@@ -48,6 +48,19 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
 - Install MySQL and create a new MySQL database using [the official guide](https://dev.mysql.com/doc/mysql-getting-started/en/) for your specific OS.
 
+  - NB: For Mac users, in the event of installing mysqlclient via pipenv, if pipfile.lock can’t be locked, run the following commands to fix it (Ref: https://forum.codewithmosh.com/t/pipenv-install-mysqlclient-issues/21727/2):
+
+  ```
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  brew install mysql pkg-config
+
+  pipenv install mysqlclient
+
+  ```
+
+- Create an app password [here](https://support.google.com/mail/answer/185833?hl=en). You'll need the password in the next step.
+
 - Add the following to your **Settings** file:
 
   ```
@@ -64,7 +77,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   }
   ```
 
-- Setup .env file with the following variables. Ensure no white space between the key and value **[e.g. SECRET_KEY=mY-sEcReT_KeY]**, and string values shouldn't be quoted.
+- Create a .env file in the root folder, and setup the following variables. Ensure there are no white spaces between keys and values **[e.g. SECRET_KEY=mY-sEcReT_KeY]**, and values shouldn't be quoted.
 
   ```
   SECRET_KEY
@@ -80,6 +93,16 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   SMTP_PASS
   SMTP_PORT
   SMTP_USE_TLS
+  ```
+
+  - Hint:
+
+  ```
+  DB_ENGINE => Use django.db.backends.mysql as the value in your .env file
+  DB_NAME => Your preferred database name
+  DB_HOST => Set value in .env file to localhost
+  DB_USER => This is your email address where you created the app password
+  DB_PASS => This is your app password (without whitespaces)
   ```
 
 - Apply migrations:
