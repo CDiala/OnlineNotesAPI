@@ -281,7 +281,7 @@ class DownloadCSV(APIView):
             field.name for field in note_list.first()._meta.get_fields()]
 
         note_values = [
-            [value for key, value in note.items() if key is not 'id'] for note in note_list.values()]
+            [value for key, value in note.items() if key != 'id'] for note in note_list.values()]
 
         current_timestamp = datetime.strftime(
             datetime.now(), "%Y-%m-%d %H:%M:%S")
