@@ -15,6 +15,8 @@ xhtml2pdf = "*"
 python-dotenv = "*"
 django-cors-headers = "*"
 certifi = "*"
+whitenoise = "*"
+gunicorn = "*"
 
 [dev-packages]
 
