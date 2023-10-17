@@ -22,3 +22,6 @@ venv.bak/
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+# sqlite db
+db.sqlite3
