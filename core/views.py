@@ -26,6 +26,9 @@ class RegisterAPI(views.APIView):
     '''
 
     def post(self, request):
+        '''
+        Method that handles registration of users into the system.
+        '''
         try:
             serializer = user_serializer.UserSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -70,6 +73,9 @@ The Team
 
 class VerifyEmail(generics.GenericAPIView):
     def get(self, request):
+        '''
+        This view validates an email after a successful registration and the email verification link is clicked.
+        '''
         try:
             token = request.GET.get('token')
             payload = jwt.decode(
@@ -103,6 +109,9 @@ class LoginAPI(views.APIView):
     """
 
     def post(self, request):
+        '''
+        Log in a user with email/password credentials
+        '''
         try:
             request_data = request.data
 
@@ -163,6 +172,9 @@ class LogoutAPI(views.APIView):
     permission_classes = (permissions.IsAuthenticated, )
 
     def post(self, request):
+        '''
+        Erase user session upon logout
+        '''
         resp = response.Response()
         resp.delete_cookie("jwt")
         resp.data = {
@@ -179,6 +191,9 @@ class UpdatePassword(views.APIView):
     '''
 
     def patch(self, request):
+        '''
+        Updates users password if validations pass
+        '''
 
         serializer = user_serializer.UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -200,6 +215,9 @@ class UpdatePassword(views.APIView):
 
 class ResetPassword(views.APIView):
     def post(self, request):
+        '''
+        Sends reset password link to user via mail
+        '''
 
         if not request.data:
             return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -241,7 +259,6 @@ Stay safe!
                 reply_to=[settings.EMAIL_HOST_USER],
                 headers={"Message-ID": "foo"},
             )
-            print('\n\n\n\nemail body:', email_body)
 
             message_response = email.send()
 

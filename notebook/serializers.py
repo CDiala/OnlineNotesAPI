@@ -3,6 +3,9 @@ from notebook.models import Note
 
 
 class NoteSerializer(serializers.ModelSerializer):
+    '''
+    This class is responsible for the serialization and deserialization of note objects
+    '''
     class Meta:
         model = Note
         fields = ['id', 'title', 'slug', 'owner', 'content',

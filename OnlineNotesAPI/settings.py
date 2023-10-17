@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 JWT_SECRET = os.environ.get('JWT_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 

@@ -20,6 +20,9 @@ and keep track of their login status in the application.
 
 @dataclasses.dataclass
 class UserDataClass:
+    '''
+    A simple dataclass representing a user object with all its attributes.
+    '''
     first_name: str
     last_name: str
     email: str
@@ -28,6 +31,9 @@ class UserDataClass:
 
     @classmethod
     def from_instance(cls, user: 'User') -> "UserDataClass":
+        '''
+        Converts an instance of the User model into this dataclass for easier manipulation and use.
+        '''
         return cls(
             first_name=user.first_name,
             last_name=user.last_name,
@@ -39,12 +45,20 @@ class UserDataClass:
 
 @dataclasses.dataclass
 class UserLoginDataClass:
+    '''
+    A dataclass representing all necessary information about the user who wants to log in.
+    '''
     email: str
     password: str = None
     id: int = None
 
     @classmethod
     def from_instance(cls, user: 'User') -> "UserLoginDataClass":
+        '''
+        Converts an instance of the User model into this class for use with JWT authentication
+        :param user: The user object to convert
+        :return: An instance of this class containing data from the given user object
+        '''
         return cls(
             email=user.email,
             password=user.password,
@@ -52,12 +66,10 @@ class UserLoginDataClass:
         )
 
 
-"""
-JWT Token Structure
-"""
-
-
 def create_user(user: "UserDataClass") -> "UserDataClass":
+    '''
+    Creates and returns an instance of `User` with given data.
+    '''
     user_instance = models.User(
         first_name=user.first_name,
         last_name=user.last_name,
@@ -73,12 +85,18 @@ def create_user(user: "UserDataClass") -> "UserDataClass":
 
 
 def user_selector(email: str) -> "User":
+    '''
+    Retrieve a user from database by their email address
+    '''
     user = models.User.objects.filter(email=email).first()
 
     return user
 
 
 def generate_token(user_id: int) -> str:
+    '''
+    Generate a JWT token for the given user ID
+    '''
     payload = {
         "id": user_id,
         "exp": datetime.datetime.utcnow() +
@@ -95,6 +113,9 @@ def generate_token(user_id: int) -> str:
 class Util:
     @staticmethod
     def send_verifyEmail(data):
+        '''
+        Send email to newly registered user for email verification
+        '''
         try:
             email = EmailMessage(
                 subject=data['email_subject'],

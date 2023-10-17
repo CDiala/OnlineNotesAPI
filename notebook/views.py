@@ -209,6 +209,12 @@ def categorize_notes(value: str, user_id: int):
 
 
 def generate_user_notes(user_email):
+    '''
+    This function generates a list of all notes for a given user email address
+    :param user_email: The email address of the user
+    :return: A tuple of list of note objects associated with the specified user
+    as well as basic user information
+    '''
     user = User.objects.get(email=user_email)
     notes = Note.objects.select_related('owner').filter(
         owner__user_id=user.id).all().order_by('id')
@@ -225,6 +231,9 @@ def generate_user_notes(user_email):
 
 
 class ViewPDF(APIView):
+    '''
+    API view to render PDF file from HTML template and send it in response
+    '''
     authentication_classes = (authentication.CustomUserAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -369,12 +378,6 @@ def redirect_noexist(request):
     This function based view displays a 404-error page to anyone trying to 
     access a non-configured URL.
     """
-    # message = "Were sorry, this link isn't available. You will be redirected to the signup page."
-    # response = redirect('register')
-    # response.status_code = 307
-    # messages.add_message(request, messages.INFO, message)
-    # print('\n\n\n\n\nwildcard response', messages)
-    # return response
-    # return HttpResponse(json.dumps({'detail': 'page not found.'}))
+
     context = {'detail': 'page not found.'}
     return render(request, '404.html', context)

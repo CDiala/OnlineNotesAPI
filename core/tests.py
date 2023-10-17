@@ -81,8 +81,6 @@ class TestViews(unittest.TestCase):
 
         response = self.client.post('/api/v1/logout/')
 
-        # print('\n\n\nlogout resp', response.content, '\n\n\n')
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_password(self):
@@ -110,83 +108,6 @@ class TestViews(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-''' NOT WORKING. TROUBLESHOOT LATER '''
-
-
-# class TestViews(unittest.TestCase):
-
-#     def setUp(self):
-#         self.client = Client()
-
-#         # Create a user for testing
-#         response = self.client.post('/api/v1/register/', {
-#             'first_name': 'John',
-#             'last_name': 'Doe',
-#             'email': 'john@example.com',
-#             'password': 'testpassword'
-#         })
-
-#         self.user = json.loads(response.content)
-
-#     def test_verify_email(self):
-#         print('\n\n\n\nself.user', self.user)
-
-#         # Generate a valid test token
-#         refresh_token = RefreshToken.for_user(self.user)
-#         valid_test_token = str(refresh_token.access_token)
-
-#         # Make a GET request with the valid test token
-#         response = self.client.get(
-#             f'/api/v1/verify-email/?token={valid_test_token}')
-
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-''''''
-# def test_valid_token_activation(self):
-#     # Assuming 'verify-email' is the URL name
-#     url = reverse('verify-email')
-
-#     # Make a GET request with a valid token
-#     response = self.client.get(f'{url}?token={self.valid_token}')
-
-#     # Check if the response status code is 200 OK
-#     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-#     # Check if the email is activated
-#     owner = Owner.objects.get(user=self.user)
-#     self.assertTrue(owner.is_email_valid)
-
-# def test_expired_token_activation(self):
-#     # Assuming 'verify-email' is the URL name
-#     url = reverse('verify-email')
-
-#     # sleep for 3 minutes before proceeding to next line
-#     print('\n\n\n\nsleep for 3 minutes to expire valid token')
-#     sleep(100)
-#     print('\n\n\n\nresume execution with invalid token')
-
-#     # Make a GET request with an expired token
-#     response = self.client.get(f'{url}?token={self.valid_token}')
-
-#     # print('\n\n\n\n\nresponse', response.content, '\n\n\n\n\n\n')
-
-#     # Check if the response status code is 400 BAD REQUEST
-#     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-#     self.assertIn(b'Activation link expired', response.content)
-
-# def test_invalid_token_activation(self):
-#     # Assuming 'verify-email' is the URL name
-#     url = reverse('verify-email')
-
-#     # Make a GET request with an invalid token
-#     response = self.client.get(f'{url}?token={self.invalid_token}')
-
-#     # Check if the response status code is 400 BAD REQUEST
-#     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-#     self.assertIn(b'Invalid token, request new one.', response.content)
 
 
 if __name__ == '__main__':

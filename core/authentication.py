@@ -5,6 +5,10 @@ from . import models
 
 
 class CustomUserAuthentication(authentication.BaseAuthentication):
+    '''
+    This class is responsible for authenticating a user based on their token.
+    '''
+
     def authenticate(self, request):
 
         # Extract the JWT from the Authorization header
