@@ -78,6 +78,8 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   }
   ```
 
+- For debugging, set **`DEBUG`** to **`True`**
+
 - Create a .env file in the root folder, and setup the following variables. Ensure there are no white spaces between keys and values **[e.g. SECRET_KEY=mY-sEcReT_KeY]**, and values shouldn't be quoted.
 
   ```
