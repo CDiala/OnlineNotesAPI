@@ -21,6 +21,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 #### Prerequisites
 
 - Python 3.x (Specific version used: 3.11.4)
+- MySQL Database
 - Django
 - Django Rest Framework... **_(see requirements.txt for complete list)_**
 
@@ -50,7 +51,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
   - NB: For Mac users, in the event of installing mysqlclient via pipenv, if pipfile.lock can’t be locked, run the following commands to fix it (Ref: https://forum.codewithmosh.com/t/pipenv-install-mysqlclient-issues/21727/2):
 
-  ```
+  ```c
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   brew install mysql pkg-config
@@ -63,7 +64,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
 - Add the following to your **Settings** file:
 
-  ```
+  ```json
   import os
   ...
   DATABASES = {
@@ -141,20 +142,22 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** Register new user with first name, last name, email and password.
 - **Sample Request:**
 
-  ```
+  ```http
   POST /api/v1/register/
   Content-Type: application/json
+  ```
 
+  ```json
   {
-      "first_name": "first_name",
-      "last_name": "last_name",
-      "email": "new_email",
-      "password": "new_password"
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "email": "new_email",
+    "password": "new_password"
   }
   ```
 
 - **Sample Response:**
-  ```
+  ```json
   {
       "user": "first_name last_name",
       "token": <token>
@@ -168,12 +171,14 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** Send password reset link to provided email
 - **Sample Request:**
 
-  ```
+  ```http
   POST /api/v1/password-reset/
   Content-Type: application/json
+  ```
 
+  ```json
   {
-    "email": "user_email",
+    "email": "user_email"
   }
   ```
 
@@ -189,22 +194,24 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** Send password update link to provided email
 - **Sample Request:**
 
-  ```
+  ```http
   POST /api/v1/password-update/
   Content-Type: application/json
+  ```
 
+  ```json
   {
     "first_name": "first_name",
     "last_name": "last_name",
     "email": "user_email",
-    "password": "password",
+    "password": "password"
   }
   ```
 
 - **Sample Response:**
-  ```
+  ```json
   {
-  "detail": "Password updated successfully"
+    "detail": "Password updated successfully"
   }
   ```
 
@@ -215,10 +222,12 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** Login user with registered email and password
 - **Sample Request:**
 
-  ```
+  ```http
   POST /api/v1/login/
   Content-Type: application/json
+  ```
 
+  ```json
   {
     "email": "user_email",
     "password": "user_password"
@@ -226,7 +235,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   ```
 
 - **Sample Response:**
-  ```
+  ```json
   {
     "id": 1,
     "user": "first_name last_name",
@@ -252,12 +261,12 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   ```
 
 - **Sample Response:**
-  ```
+  ```json
   {
-  "id": 1,
-  "first_name": "chibuzo",
-  "last_name": "diala",
-  "email": "dialachibuzo@yahoo.com"
+    "id": 1,
+    "first_name": "chibuzo",
+    "last_name": "diala",
+    "email": "dialachibuzo@yahoo.com"
   }
   ```
 
@@ -274,19 +283,21 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
 
-  ```
+  ```http
   POST /api/v1/notes/
   Content-Type: application/json
   Authorization: JWT <token> (or Authorization: Bearer <token> )
+  ```
 
+  ```json
   {
-      "title": "bye 4 now",
-      "slug": "bye-4-now",
-      "content": "wfwrrgr",
-      "due_date": "2023-10-17",
-      "priority": "M",
-      "status": "D",
-      "category": "O"
+    "title": "bye 4 now",
+    "slug": "bye-4-now",
+    "content": "wfwrrgr",
+    "due_date": "2023-10-17",
+    "priority": "M",
+    "status": "D",
+    "category": "O"
   }
   ```
 
@@ -294,50 +305,50 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
   - Get
 
-  ```
+  ```json
   [
-      {
-          "id": 21,
-          "title": "bye 4 now",
-          "slug": "bye-4-now",
-          "owner": 3,
-          "content": "wfwrrgr",
-          "created_at": "2023-10-13T21:49:20.469551Z",
-          "due_date": "2023-10-17",
-          "priority": "M",
-          "status": "D",
-          "category": "O"
-      },
-      {
-          "id": 11,
-          "title": "welcome back",
-          "slug": "welcome-back",
-          "owner": 3,
-          "content": "...",
-          "created_at": "2023-10-08T12:20:06.694610Z",
-          "due_date": null,
-          "priority": "M",
-          "status": "N",
-          "category": "N"
-      }
+    {
+      "id": 21,
+      "title": "bye 4 now",
+      "slug": "bye-4-now",
+      "owner": 3,
+      "content": "wfwrrgr",
+      "created_at": "2023-10-13T21:49:20.469551Z",
+      "due_date": "2023-10-17",
+      "priority": "M",
+      "status": "D",
+      "category": "O"
+    },
+    {
+      "id": 11,
+      "title": "welcome back",
+      "slug": "welcome-back",
+      "owner": 3,
+      "content": "...",
+      "created_at": "2023-10-08T12:20:06.694610Z",
+      "due_date": null,
+      "priority": "M",
+      "status": "N",
+      "category": "N"
+    }
   ]
   ```
 
   - Post
 
-  ```
+  ```json
   {
-      "response": "record created successfully.",
-      "data": {
-          "title": "bye 4 now",
-          "slug": "bye-4-now",
-          "owner": 3,
-          "content": "wfwrrgr",
-          "due_date": "2023-10-17",
-          "priority": "M",
-          "status": "D",
-          "category": "O"
-      }
+    "response": "record created successfully.",
+    "data": {
+      "title": "bye 4 now",
+      "slug": "bye-4-now",
+      "owner": 3,
+      "content": "wfwrrgr",
+      "due_date": "2023-10-17",
+      "priority": "M",
+      "status": "D",
+      "category": "O"
+    }
   }
   ```
 
@@ -355,7 +366,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
 
-  ```
+  ```http
   PUT /api/v1/notes/11
   Content-Type: application/json
   Authorization: JWT <token> (or Authorization: Bearer <token> )
@@ -372,7 +383,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   }
   ```
 
-  ```
+  ```http
   DELETE /api/v1/notes/11
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
@@ -381,7 +392,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
   - Get
 
-  ```
+  ```json
   {
     "id": 11,
     "title": "welcome back",
@@ -398,7 +409,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
   - Put
 
-  ```
+  ```json
   {
     "id": 11,
     "title": "welcome back",
@@ -415,7 +426,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
   - Delete
 
-  ```
+  ```json
   {
     "response": "deleted"
   }
@@ -433,7 +444,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   ```
 
 - **Sample Response:**
-  ```
+  ```json
   {
     "id": 1,
     "user": "first_name last_name",
@@ -448,7 +459,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **GET:** When a user clicks the email verification link in their email boxes, this endpoint marks their email address as verified in the database.
 - **Sample Request:**
 
-  ```
+  ```http
   GET /api/v1/pdf_view/
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
@@ -465,7 +476,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **GET:** Download notes list as PDF
 - **Sample Request:**
 
-  ```
+  ```http
   GET /api/v1/pdf_download/
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
@@ -482,7 +493,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **GET:** Download notes list as CSV
 - **Sample Request:**
 
-  ```
+  ```http
   GET /api/v1/csv_download/
   Authorization: JWT <token> (or Authorization: Bearer <token> )
   ```
@@ -499,7 +510,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** Send notes list to user's emailbox as an attachment
 - **Sample Request:**
 
-  ```
+  ```c
   curl -X POST /api/v1/send_attachment/ \
   -H "Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
   -H "Authorization: JWT <token> (or Authorization: Bearer <token> )"
@@ -536,7 +547,7 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
   - **POST:** logout currently logged in user.
 - **Sample Request:**
 
-  ```
+  ```http
   POST /api/v1/logout/
   ```
 
@@ -549,9 +560,9 @@ The OnlineNotesAPI is a Django project designed to help users save and organize 
 
 - **Sample Response:**
 
-  ```
+  ```json
   {
-  "message": "Logout successful"
+    "message": "Logout successful"
   }
   ```
 
