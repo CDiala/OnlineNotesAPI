@@ -1,11 +1,8 @@
-import json
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.conf import settings
-from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
-from django.views import View
 from django.core.mail import EmailMessage
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response

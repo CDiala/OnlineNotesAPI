@@ -6,8 +6,6 @@ from . import models
 
 class CustomUserAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        # token = request.COOKIES.get("jwt")
-        # token = request.META.get('HTTP_AUTHORIZATION')
 
         # Extract the JWT from the Authorization header
         token = request.COOKIES.get(
