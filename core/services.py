@@ -114,7 +114,7 @@ class Util:
     @staticmethod
     def send_verifyEmail(data):
         '''
-        Send email to newly registered user for email verification
+        Utility function for sending emails to users
         '''
         try:
             email = EmailMessage(
@@ -123,8 +123,17 @@ class Util:
                 to=[data['email_address']]
             )
 
+            if 'file' in data:
+                email.attach(
+                    data['file'].name,
+                    data['file'].read(),
+                    data['file'].content_type
+                )
+
             delivery_response = email.send()
+
             return delivery_response
+
         except IntegrityError as e:
             return response.Response(
                 {"detail": "This account already exists.", "info": e.args[0:]}, status=status.HTTP_403_FORBIDDEN)

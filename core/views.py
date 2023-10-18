@@ -1,14 +1,10 @@
-from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.db.models import F
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
-
 from rest_framework import generics, views, response, exceptions, permissions, status
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from core.models import User
 from . import serializers as user_serializer, services as service, authentication
 from notebook.models import Owner
@@ -40,12 +36,37 @@ class RegisterAPI(views.APIView):
             user_info = serializer.data
             user = User.objects.get(email=user_info['email'])
 
-            token = RefreshToken.for_user(user).access_token
+            SendVerificationEmail.post(self, request)
 
-            current_site = get_current_site(request).domain
-            relative_link = reverse('verify-email')
-            absolute_url = f'http://{current_site}{relative_link}?token={token}'
-            email_body = f'''Hi {user.first_name.title()} {user.last_name.title()},
+            return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+        except IntegrityError as e:
+            return response.Response({'detail': 'Unable to process request.', 'message': e.args[0:]}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return response.Response({'detail': e.args[0:]})
+
+
+class SendVerificationEmail(views.APIView):
+    '''
+    View for sending verification emails to registered users.
+    '''
+
+    def post(self, request):
+        try:
+            if not request.data:
+                return response.Response({'detail': "No data provided"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Get user
+            user_email = request.data['email']
+            user = User.objects.filter(email=user_email).first()
+            print('\n\n\n\n verificaiton requester', user, '\n\n\n\n')
+
+            if user is not None:
+                # Build verification email
+                token = RefreshToken.for_user(user).access_token
+                current_site = get_current_site(request).domain
+                relative_link = reverse('verify-email')
+                absolute_url = f'http://{current_site}{relative_link}?token={token}'
+                email_body = f'''Hi {user.first_name.title()} {user.last_name.title()},
 
 Welcome onboard! In order to activate your account, please verify your email by clicking on the link below:
 
@@ -56,19 +77,22 @@ Can't wait to see more of you on our platform. Until then, take care and be safe
 Best regards!
 The Team
     '''
-            data = {
-                "email_body": email_body,
-                "email_subject": 'Online NoteTaker - Email Verification',
-                "email_address": user.email
-            }
+                data = {
+                    "email_body": email_body,
+                    "email_subject": 'Online NoteTaker - Email Verification',
+                    "email_address": user.email
+                }
 
-            service.Util.send_verifyEmail(data)
+                delivery_response = service.Util.send_verifyEmail(data)
 
-            return response.Response(data=serializer.data, status=status.HTTP_200_OK)
-        except IntegrityError as e:
-            return response.Response({'detail': 'Unable to process request.', 'message': e.args[0:]}, status=status.HTTP_403_FORBIDDEN)
+                if delivery_response == 0:
+                    return response.Response({'detail': '0 email sent'}, status=status.HTTP_204_NO_CONTENT)
+                return response.Response({'detail': '1 email sent sucessfully'}, status=status.HTTP_200_OK)
+
+            return response.Response({'response': "No user found"}, status=status.HTTP_401_UNAUTHORIZED)
+
         except Exception as e:
-            return response.Response({'detail': e.args[0:]})
+            return response.Response({'detail': e.args[0:]}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class VerifyEmail(generics.GenericAPIView):
@@ -218,53 +242,50 @@ class ResetPassword(views.APIView):
         '''
         Sends reset password link to user via mail
         '''
-
-        if not request.data:
-            return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user_email = request.data.get('email')
-
-        if not user_email:
-            return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = get_object_or_404(User, email=user_email)
-
-        token = RefreshToken.for_user(user).access_token
-
-        current_site = get_current_site(request).domain
-        relative_link = reverse('password-reset')
-        absolute_url = f'http://{current_site}{relative_link}?token={token}'
-
-        email_body = f'''
-Hi {user.first_name} {user.last_name},
-
-We believe you have requested to reset your password.
-
-Follow the link below to complete the password reset process.
-
-{absolute_url}
-
-Otherwise, disregard the email.
-
-Stay safe!
-'''
-        # return response.Response('terminated')
-
         try:
-            email = EmailMessage(
-                "Request - Password Reset",
-                email_body,
-                settings.EMAIL_HOST_USER,
-                [user.email],
-                reply_to=[settings.EMAIL_HOST_USER],
-                headers={"Message-ID": "foo"},
-            )
 
-            message_response = email.send()
+            if not request.data:
+                return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user_email = request.data.get('email')
+
+            if not user_email:
+                return response.Response({'detail': 'Email field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = get_object_or_404(User, email=user_email)
+
+            token = RefreshToken.for_user(user).access_token
+
+            current_site = get_current_site(request).domain
+            relative_link = reverse('password-reset')
+            absolute_url = f'http://{current_site}{relative_link}?token={token}'
+
+            email_subject = 'Online NoteTaker - Password Reset'
+
+            email_body = f'''
+    Hi {user.first_name} {user.last_name},
+
+    We believe you have requested to reset your password.
+
+    Follow the link below to complete the password reset process.
+
+    {absolute_url}
+
+    Otherwise, disregard the email.
+
+    Stay safe!
+    '''
+
+            data = {
+                "email_body": email_body,
+                "email_subject": email_subject,
+                "email_address": user.email
+            }
+
+            message_response = service.Util.send_verifyEmail(data)
 
             if message_response == 1:
-                return response.Response('A link has been sent to your email to reset your password.', status=status.HTTP_200_OK)
-            else:
-                return response.Response(f'Failed to deliver email to recipients.')
+                return response.Response({'detail': 'A link has been sent to your email to reset your password.'}, status=status.HTTP_200_OK)
+            return response.Response({'detail': 'Failed to deliver email to recipients.'})
         except Exception as e:
             return response.Response({'detail': 'Unable to complete request.', 'message': e.args[0:]}, status=status.HTTP_403_FORBIDDEN)

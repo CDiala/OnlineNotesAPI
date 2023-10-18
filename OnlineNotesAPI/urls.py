@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf.urls.static import static
+from notebook import services
 
 from notebook import views
 
@@ -30,5 +31,5 @@ urlpatterns = [
     path('api/v1/', include('notebook.urls')),
     path('api/v1/', include('core.urls')),
     path("__debug__/", include("debug_toolbar.urls")),
-    re_path(r'^.*$', views.redirect_noexist, name='wildcard_route'),
+    re_path(r'^.*$', services.redirect_noexist, name='wildcard_route'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
