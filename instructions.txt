@@ -5,32 +5,32 @@ For a detailed guide on how to install this project on your machine, see the ins
 
 Here are some additional features to be considered for the OnlineNotesAPI project:
 
-1. Advanced User Profile Management: Allow users to update their profile information like name, profile picture, etc. Implement profile picture uploads.
+1. Advanced email setup: Implement customization of email content - subject, body, recipients, etc.
 
-2. Search Functionality: Allow users to search for notes based on keywords, tags, or titles.
+2. Advanced User Profile Management: Allow users to update their profile information like name, profile picture, etc. Implement profile picture uploads.
 
-3. Customizable Tagging System: Implement a tagging system that allows users to create their custom categories for categorizing their notes.
+3. Search Functionality: Allow users to search for notes based on keywords, tags, or titles.
 
-4. Sharing and Collaboration: Allow users to share notes with others and collaborate on them.
+4. Customizable Tagging System: Implement a tagging system that allows users to create their custom categories for categorizing their notes.
 
-5. Trash and Archive: Add options for users to archive or move notes to trash for better organization.
+5. Sharing and Collaboration: Allow users to share notes with others and collaborate on them.
 
-6. Reminder and Notification System: Implement a reminder system that sends notifications to users.
+6. Trash and Archive: Add options for users to archive or move notes to trash for better organization.
 
-7. Internationalization and Localization: Add support for multiple languages.
+7. Reminder and Notification System: Implement a reminder system that sends notifications to users.
 
-8. Security Enhancements: Implement security features like CSRF protection, rate limiting, and content security policies.
+8. Internationalization and Localization: Add support for multiple languages.
 
-9. Export and Import: Provide options to export notes in formats other than .csv and .PDF (e.g., Markdown) and the ability to import notes from external sources.
+9. Security Enhancements: Implement security features like CSRF protection, rate limiting, and content security policies.
 
-10. Version Control: Implement version control for notes, allowing users to track changes and revert to previous versions.
-User Authentication Enhancements:
+10. Export and Import: Provide options to export notes in formats other than .csv and .PDF (e.g., Markdown) and the ability to import notes from external sources.
 
-11. Implement additional authentication methods like social login (Google, Facebook, etc.).
+11. Version Control: Implement version control for notes, allowing users to track changes and revert to previous versions.
 
-12. User Feedback and Support: Integrate a feedback system.
+12. User Authentication Enhancements: Implement additional authentication methods like social login (Google, Facebook, etc.).
 
-13. User Activity Log: Keep a log of user activities for auditing and security purposes.
+13. User Feedback and Support: Integrate a feedback system.
 
-14. User Preferences: Allow users to customize their experience, such as theme selection, font size, etc.
+14. User Activity Log: Keep a log of user activities for auditing and security purposes.
 
+15. User Preferences: Allow users to customize their experience, such as theme selection, font size, etc.
