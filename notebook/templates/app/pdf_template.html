@@ -68,7 +68,7 @@
         <th>S/N</th>
         <th>Title</th>
         <th>Slug</th>
-        <th>Owner</th>
+        {% comment %} <th>Owner</th> {% endcomment %}
         <th>Content</th>
         <th>Date Created</th>
         <th>Due Date</th>
@@ -81,7 +81,7 @@
         <td>{{forloop.counter}}</td>
         <td>{{note.title}}</td>
         <td>{{note.slug}}</td>
-        <td>{{note.owner}}</td>
+        {% comment %} <td>{{note.owner}}</td> {% endcomment %}
         <td>{{note.content}}</td>
         <td>{{note.created_at|date}}</td>
         <td>{{note.due_date}}</td>

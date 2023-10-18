@@ -58,7 +58,6 @@ class SendVerificationEmail(views.APIView):
             # Get user
             user_email = request.data['email']
             user = User.objects.filter(email=user_email).first()
-            print('\n\n\n\n verificaiton requester', user, '\n\n\n\n')
 
             if user is not None:
                 # Build verification email

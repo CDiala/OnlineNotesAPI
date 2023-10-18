@@ -206,15 +206,21 @@ class DownloadCSV(APIView):
         Utility code that builds a list of user's notes into a CSV and downloads the file to their machine.
         '''
 
-        notes = generate_user_notes(request.user)[1]
+        refined_notes = generate_user_notes(request.user)[0]['notes']
 
-        note_list = notes[0:]
+        note_fields = ['S/N']
+        note_values = []
 
-        note_fields = [
-            field.name for field in note_list.first()._meta.get_fields()]
+        for index, note in enumerate(refined_notes):
+            note_value = []
+            for key, value in note.items():
+                if key != 'owner' and key != 'id':
+                    note_value.append(value)
 
-        note_values = [
-            [value for key, value in note.items() if key != 'id'] for note in note_list.values()]
+                    # Populate headers only once
+                    if index == 0:
+                        note_fields.append(key)
+            note_values.append(note_value)
 
         current_timestamp = datetime.strftime(
             datetime.now(), "%Y-%m-%d %H:%M:%S")

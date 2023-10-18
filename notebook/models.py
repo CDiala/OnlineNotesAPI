@@ -97,3 +97,22 @@ class Note(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_display_info(self):
+        priority_display = dict(self.PRIORITY_CHOICES).get(self.priority)
+        status_display = dict(self.STATUS_CHOICES).get(self.status)
+        category_display = dict(self.CATEGORY_CHOICES).get(self.category)
+        # return f'{self.first_name} | {self.last_name} | {gender_display} | {height_display}'
+
+        return {
+            "id": self.id,
+            "title": self.title,
+            "slug": self.slug,
+            "owner": self.owner.id,
+            "content": self.content,
+            "created_at": self.created_at,
+            "due_date": self.due_date,
+            "priority": priority_display,
+            "status": status_display,
+            "category": category_display,
+        }

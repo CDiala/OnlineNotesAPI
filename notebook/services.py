@@ -19,10 +19,13 @@ def generate_user_notes(user_email):
         owner__user_id=user.id).all().order_by('id')
     note_list = notes[0:]
 
+    refined_notes = [note.get_display_info()
+                     for note in notes]
+
     data = {
         "user": f"{user.first_name.title()} {user.last_name.title()}",
         "created_date": datetime.utcnow(),
-        "notes": note_list,
+        "notes": refined_notes,
         "last_login": user.last_login
     }
 
